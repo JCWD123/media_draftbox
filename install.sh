@@ -1,6 +1,6 @@
 #!/bin/bash
 # DraftBox 一键安装脚本
-# 用法: curl -sSL https://raw.githubusercontent.com/xxx/draftbox/main/install.sh | bash
+# 用法: curl -sSL https://raw.githubusercontent.com/JCWD123/media_draftbox/master/install.sh | bash
 
 set -e
 
@@ -27,7 +27,7 @@ cd "$INSTALL_DIR"
 # 下载项目
 if [ ! -f "main.py" ]; then
     echo "📥 下载 DraftBox..."
-    curl -sSL https://raw.githubusercontent.com/xxx/draftbox/main/draftbox_v2.tar.gz | tar xz
+    curl -sSL https://raw.githubusercontent.com/JCWD123/media_draftbox/master/draftbox_v2.tar.gz | tar xz
 fi
 
 # 安装 Python 依赖
