@@ -30,20 +30,32 @@ if ! command -v wewrite &> /dev/null; then
     pip install wewrite -q 2>/dev/null || pip install git+https://github.com/imraywang/wewrite.git -q
 fi
 
-# 创建全局命令
-cat > /usr/local/bin/draftbox << 'COMMAND'
+# 创建全局命令（尝试多种方式）
+if [ -d "/usr/local/bin" ]; then
+    cat > /usr/local/bin/draftbox << 'COMMAND'
 #!/bin/bash
 cd ~/.draftbox
 python cli.py "$@"
 COMMAND
-chmod +x /usr/local/bin/draftbox 2>/dev/null || sudo chmod +x /usr/local/bin/draftbox
+    chmod +x /usr/local/bin/draftbox
+    echo "✅ 已创建 /usr/local/bin/draftbox"
+else
+    # Windows/MSYS 环境：创建 .cmd 文件
+    cat > ~/draftbox.cmd << 'COMMAND'
+@echo off
+cd /d "%USERPROFILE%\.draftbox"
+python cli.py %*
+COMMAND
+    echo "✅ 已创建 ~/draftbox.cmd"
+fi
 
 echo ""
 echo "✅ 安装完成！"
 echo ""
-echo "📝 立即可用："
-echo "   draftbox setup    # 配置向导"
+echo "📝 使用方法："
+echo "   cd ~/.draftbox && python cli.py setup"
 echo ""
 
 # 立即执行 setup
-draftbox setup
+cd "$INSTALL_DIR"
+python cli.py setup
