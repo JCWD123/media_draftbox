@@ -1,39 +1,32 @@
 #!/usr/bin/env python3
 """
-DraftBox CLI - 交互式配置工具
-参考 Hermes 风格的终端配置
-
+DraftBox CLI
 用法：
-  draftbox              交互式配置
-  draftbox config list  查看配置
-  draftbox config set   设置配置
-  draftbox config get   获取配置
+  draftbox setup     交互式配置向导
+  draftbox start     启动服务
+  draftbox config    配置管理
 """
 import yaml
 import sys
+import subprocess
+import os
 from pathlib import Path
 
 CONFIG_DIR = Path.home() / ".draftbox"
 CONFIG_FILE = CONFIG_DIR / "config.yaml"
 
-
 def ensure_dir():
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 
-
 def load_config():
-    if not CONFIG_FILE.exists():
-        return {}
+    if not CONFIG_FILE.exists(): return {}
     with open(CONFIG_FILE, encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
-
 
 def save_config(cfg):
     ensure_dir()
     with open(CONFIG_FILE, "w", encoding="utf-8") as f:
         yaml.dump(cfg, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
-    print(f"✅ 配置已保存: {CONFIG_FILE}")
-
 
 def flatten(d, parent=""):
     items = []
@@ -45,7 +38,6 @@ def flatten(d, parent=""):
             items.append((key, v))
     return items
 
-
 def set_val(cfg, path, value):
     keys = path.split(".")
     d = cfg
@@ -56,141 +48,126 @@ def set_val(cfg, path, value):
     elif value.isdigit(): value = int(value)
     d[keys[-1]] = value
 
-
 def get_val(cfg, path):
     for k in path.split("."):
         cfg = cfg.get(k, {})
     return cfg
 
 
-def show_config():
-    cfg = load_config()
-    if not cfg:
-        print("  ⚠️  未配置，运行: draftbox config init")
-        return
-    print("\n📋 当前配置：")
-    print("=" * 50)
-    for key, val in flatten(cfg):
-        display = str(val)
-        if "key" in key.lower() or "secret" in key.lower():
-            if val: display = f"{'*' * 8}{str(val)[-4:]}"
-        print(f"  {key}: {display}")
-    print()
+# ========== 命令实现 ==========
 
-
-def init_wizard():
+def cmd_setup():
+    """交互式配置向导"""
     print("""
-╔══════════════════════════════════════════════════════════════╗
+\x1b[36m╔══════════════════════════════════════════════════════════════╗
 ║            DraftBox 配置向导                                 ║
-╚══════════════════════════════════════════════════════════════╝
+╚══════════════════════════════════════════════════════════════╝\x1b[0m
 """)
     cfg = load_config()
 
     # AI 模型
-    print("\x1b[36m  ── AI 模型配置 ──\x1b[0m")
-    print("  支持: MiMo / DeepSeek / OpenAI / 本地模型")
-    api_key = input(f"  API Key [{cfg.get('model', {}).get('api_key', '') or '未设置'}]: ").strip()
-    if api_key:
-        cfg.setdefault("model", {})["api_key"] = api_key
+    print("\x1b[36m  ── AI 模型 ──\x1b[0m")
+    print("  支持: MiMo / DeepSeek / OpenAI")
+    key = input(f"  API Key [{cfg.get('model',{}).get('api_key','') or '未设置'}]: ").strip()
+    if key: cfg.setdefault("model",{})["api_key"] = key
 
-    base_url = input(f"  API Base URL [{cfg.get('model', {}).get('base_url', 'https://token-plan-cn.xiaomimimo.com/v1')}]: ").strip()
-    if base_url:
-        cfg.setdefault("model", {})["base_url"] = base_url
+    url = input(f"  API URL [{cfg.get('model',{}).get('base_url','https://token-plan-cn.xiaomimimo.com/v1')}]: ").strip()
+    if url: cfg.setdefault("model",{})["base_url"] = url
 
-    model_name = input(f"  模型名称 [{cfg.get('model', {}).get('model', 'mimo-v2.5')}]: ").strip()
-    if model_name:
-        cfg.setdefault("model", {})["model"] = model_name
+    model = input(f"  模型名 [{cfg.get('model',{}).get('model','mimo-v2.5')}]: ").strip()
+    if model: cfg.setdefault("model",{})["model"] = model
 
     # 图片搜索
-    print("\n\x1b[36m  ── 图片搜索引擎 ──\x1b[0m")
-    print("  支持: Pexels (免费)")
-    pexels_key = input(f"  Pexels API Key [{cfg.get('search', {}).get('pexels_key', '') or '未设置'}]: ").strip()
-    if pexels_key:
-        cfg.setdefault("search", {})["pexels_key"] = pexels_key
+    print("\n\x1b[36m  ── 图片搜索 ──\x1b[0m")
+    pexels = input(f"  Pexels Key [{cfg.get('search',{}).get('pexels_key','') or '未设置'}]: ").strip()
+    if pexels: cfg.setdefault("search",{})["pexels_key"] = pexels
 
-    # 服务端口
-    print("\n\x1b[36m  ── 服务配置 ──\x1b[0m")
-    port = input(f"  后端端口 [{cfg.get('server', {}).get('backend_port', 8502)}]: ").strip()
-    if port:
-        cfg.setdefault("server", {})["backend_port"] = int(port)
+    unsplash = input(f"  Unsplash Key [{cfg.get('search',{}).get('unsplash_key','') or '未设置'}]: ").strip()
+    if unsplash: cfg.setdefault("search",{})["unsplash_key"] = unsplash
 
-    web_port = input(f"  前端端口 [{cfg.get('server', {}).get('web_port', 3000)}]: ").strip()
-    if web_port:
-        cfg.setdefault("server", {})["web_port"] = int(web_port)
+    # 端口
+    print("\n\x1b[36m  ── 服务端口 ──\x1b[0m")
+    port = input(f"  后端端口 [{cfg.get('server',{}).get('port',8502)}]: ").strip()
+    if port: cfg.setdefault("server",{})["port"] = int(port)
 
     save_config(cfg)
-
-    print(f"""
-\x1b[32m  ✅ 配置完成！
-
-  配置文件: {CONFIG_FILE}
-
-  启动服务:
-    python -m uvicorn backend.main:app --port {cfg.get('server', {}).get('backend_port', 8502)}
-    cd web && npm run dev
-
-  访问: http://localhost:{cfg.get('server', {}).get('web_port', 3000)}
-\x1b[0m
-""")
+    print(f"\n\x1b[32m  ✅ 配置完成！\x1b[0m")
+    print(f"\n  启动: draftbox start\n")
 
 
-def interactive():
-    print("""
-\x1b[36m╔══════════════════════════════════════════════════════════════╗
-║            DraftBox 配置管理                                  ║
-╚══════════════════════════════════════════════════════════════╝\x1b[0m
-""")
-    while True:
-        try:
-            cmd = input("\x1b[36mdraftbox>\x1b[0m ").strip()
-            if not cmd: continue
-            parts = cmd.split()
-            action = parts[0].lower()
+def cmd_start():
+    """启动服务"""
+    ensure_dir()
+    cfg = load_config()
+    port = cfg.get("server",{}).get("port", 8502)
 
-            if action in ("quit", "exit", "q"):
-                print("  👋 再见！"); break
-            elif action == "help":
-                print("  config list   查看配置")
-                print("  config init   初始化配置向导")
-                print("  config set    设置配置")
-                print("  config get    获取配置")
-                print("  quit          退出")
-            elif action == "config":
-                if len(parts) > 1 and parts[1] == "init": init_wizard()
-                elif len(parts) > 1 and parts[1] == "list": show_config()
-                elif len(parts) > 1 and parts[1] == "set" and len(parts) >= 4:
-                    cfg = load_config()
-                    set_val(cfg, parts[2], " ".join(parts[3:]))
-                    save_config(cfg)
-                    print(f"  ✅ {parts[2]} = {parts[3]}")
-                elif len(parts) > 1 and parts[1] == "get" and len(parts) >= 3:
-                    val = get_val(load_config(), parts[2])
-                    print(f"  {parts[2]} = {val}" if val else f"  ❌ {parts[2]} 未配置")
-                else: print("  用法: config [list|init|set|get]")
-            else:
-                print(f"  未知命令: {action}，输入 help 查看帮助")
-        except (KeyboardInterrupt, EOFError):
-            print("\n  👋 再见！"); break
-        except Exception as e:
-            print(f"  ❌ 错误: {e}")
+    print(f"\n🚀 DraftBox 启动中...")
+    print(f"   后端: http://localhost:{port}")
+    print(f"   前端: http://localhost:3000\n")
+
+    # 启动后端
+    subprocess.Popen(
+        [sys.executable, "-m", "uvicorn", "backend.main:app", "--port", str(port), "--host", "0.0.0.0"],
+        cwd=str(CONFIG_DIR)
+    )
+
+    # 启动前端
+    web_dir = CONFIG_DIR / "web"
+    if web_dir.exists():
+        subprocess.Popen(["npm", "run", "dev"], cwd=str(web_dir))
+
+    print("✅ 服务已启动！\n")
+
+
+def cmd_config(args):
+    """配置管理"""
+    if not args or args[0] == "list":
+        cfg = load_config()
+        if not cfg:
+            print("  ⚠️  未配置，运行: draftbox setup")
+            return
+        print("\n📋 当前配置：")
+        for key, val in flatten(cfg):
+            display = str(val)
+            if "key" in key.lower() or "secret" in key.lower():
+                if val: display = f"{'*' * 8}{str(val)[-4:]}"
+            print(f"  {key}: {display}")
+
+    elif args[0] == "set" and len(args) >= 3:
+        cfg = load_config()
+        set_val(cfg, args[1], " ".join(args[2:]))
+        save_config(cfg)
+        print(f"  ✅ {args[1]} 已设置")
+
+    elif args[0] == "get" and len(args) >= 2:
+        val = get_val(load_config(), args[1])
+        print(f"  {args[1]} = {val}" if val else f"  ❌ {args[1]} 未配置")
+
+
+def main():
+    ensure_dir()
+
+    if len(sys.argv) < 2:
+        print("\n\x1b[36mDraftBox - 会学习的AI写作助手\x1b[0m\n")
+        print("  draftbox setup   配置向导")
+        print("  draftbox start   启动服务")
+        print("  draftbox config  查看配置\n")
+        return
+
+    cmd = sys.argv[1]
+    args = sys.argv[2:]
+
+    if cmd == "setup":
+        cmd_setup()
+    elif cmd == "start":
+        cmd_start()
+    elif cmd == "config":
+        cmd_config(args)
+    elif cmd == "version":
+        print("DraftBox v1.0.0")
+    else:
+        print(f"  未知命令: {cmd}")
 
 
 if __name__ == "__main__":
-    ensure_dir()
-    if len(sys.argv) > 1:
-        cmd = sys.argv[1]
-        if cmd == "config":
-            if len(sys.argv) > 2 and sys.argv[2] == "init": init_wizard()
-            elif len(sys.argv) > 2 and sys.argv[2] == "list": show_config()
-            elif len(sys.argv) > 2 and sys.argv[2] == "set" and len(sys.argv) >= 5:
-                cfg = load_config()
-                set_val(cfg, sys.argv[3], " ".join(sys.argv[4:]))
-                save_config(cfg)
-            elif len(sys.argv) > 2 and sys.argv[2] == "get" and len(sys.argv) >= 4:
-                val = get_val(load_config(), sys.argv[3])
-                print(val if val else "未配置")
-        elif cmd == "version": print("DraftBox v1.0.0")
-        elif cmd == "help": print("DraftBox CLI - draftbox config init")
-        else: interactive()
-    else:
-        interactive()
+    main()
