@@ -16,44 +16,109 @@ from pathlib import Path
 CONFIG_DIR = Path.home() / ".draftbox"
 CONFIG_FILE = CONFIG_DIR / "config.yaml"
 
-# 模型提供商配置（官网核实）
-PROVIDERS = {
-    "1": {
-        "name": "Xiaomi MiMo",
-        "url": "https://token-plan-cn.xiaomimimo.com/v1",
-        "models": ["mimo-v2.5", "mimo-v2.5-pro", "mimo-v2-omni", "mimo-v2-flash"],
-        "note": "MiMo-V2.5系列，pro更强，flash更快"
-    },
-    "2": {
-        "name": "DeepSeek",
-        "url": "https://api.deepseek.com/v1",
-        "models": ["deepseek-v4-flash", "deepseek-v4-pro"],
-        "note": "V4系列，flash快速，pro深度推理"
-    },
-    "3": {
-        "name": "OpenAI",
-        "url": "https://api.openai.com/v1",
-        "models": ["gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-4o"],
-        "note": "GPT-5.6系列：sol强推理/terra平衡/luna经济"
-    },
-    "4": {
-        "name": "通义千问",
-        "url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
-        "models": ["qwen3.7-max", "qwen3.7-plus", "qwen3.6-flash"],
-        "note": "Qwen3.7系列，max最强/plus均衡/flash快速"
-    },
-    "5": {
-        "name": "智谱AI",
-        "url": "https://open.bigmodel.cn/api/paas/v4",
-        "models": ["glm-5", "glm-4-plus", "glm-4-flash"],
-        "note": "GLM-5系列，745B参数，200K上下文"
-    },
-    "6": {
-        "name": "自定义",
-        "url": "",
-        "models": [],
-        "note": "手动输入API地址和模型名"
-    },
+# 模型提供商配置（完全复制 hermes 格式）
+PROVIDERS = [
+    ("1",  "Nous Portal", "Everything your agent needs, 300+ models"),
+    ("2",  "OpenRouter", "Pay-per-use API aggregator"),
+    ("3",  "Mixture of Agents", "Named presets; aggregator acts after reference models"),
+    ("4",  "NovitaAI", "Cloud: Model API, Agent Sandbox, GPU Cloud"),
+    ("5",  "LM Studio", "Local desktop app with built-in model server"),
+    ("6",  "Anthropic", "Claude models via API key or Claude Code"),
+    ("7",  "OpenAI ▸", "Codex CLI or direct OpenAI API"),
+    ("8",  "Qwen Cloud / DashScope", "Qwen + multi-provider"),
+    ("9",  "xAI Grok ▸", "Direct API or SuperGrok / Premium+ OAuth"),
+    ("10", "Xiaomi MiMo", "MiMo-V2.5 and V2 models: pro, omni, flash"),
+    ("11", "Tencent TokenHub", "Hy3 Preview via tokenhub.tencentmaas.com"),
+    ("12", "NVIDIA NIM", "Nemotron models via build.nvidia.com or local NIM"),
+    ("13", "GitHub Copilot ▸", "GitHub token API or copilot --acp process"),
+    ("14", "Hugging Face Inference Providers", ""),
+    ("15", "Google AI Studio", "Native Gemini API"),
+    ("16", "Google Vertex AI", "Gemini via GCP; OAuth2 service account or ADC"),
+    ("17", "DeepSeek", "V3, R1, coder, direct API"),
+    ("18", "Z.AI / GLM", "Zhipu direct API"),
+    ("19", "Kimi / Moonshot ▸", "Coding Plan, Moonshot global & China endpoints"),
+    ("20", "StepFun Step Plan", "Agent / coding models via Step Plan API"),
+    ("21", "MiniMax ▸", "Global, OAuth Coding Plan & China endpoints"),
+    ("22", "Ollama Cloud", "Cloud-hosted open models, ollama.com"),
+    ("23", "Arcee AI", "Trinity models, direct API"),
+    ("24", "GMI Cloud", "Multi-model direct API"),
+    ("25", "Kilo Code", "Kilo Gateway API"),
+    ("26", "OpenCode ▸", "Zen pay-as-you-go or Go subscription"),
+    ("27", "AWS Bedrock", "Claude, Nova, Llama, DeepSeek; IAM or API key"),
+    ("28", "Azure Foundry", "OpenAI-style or Anthropic-style endpoint"),
+    ("29", "Qwen OAuth", "Reuses local Qwen CLI login"),
+    ("30", "Alibaba Cloud Coding Plan", "Dedicated coding tier"),
+    ("31", "custom", "direct API"),
+    ("32", "Custom endpoint", "enter URL manually"),
+    ("33", "Configure auxiliary models...", ""),
+    ("34", "Leave unchanged", ""),
+]
+
+# 各提供商的模型列表
+PROVIDER_MODELS = {
+    "1":  ["claude-sonnet-4", "claude-opus-4", "gpt-4o", "deepseek-v3"],
+    "2":  ["anthropic/claude-sonnet-4", "openai/gpt-4o", "google/gemini-pro", "deepseek/deepseek-chat"],
+    "3":  ["claude-sonnet-4", "gpt-4o", "gemini-pro"],
+    "4":  ["deepseek-v3", "llama-3.1-70b"],
+    "5":  ["llama-3.1-8b-instruct", "mistral-7b-instruct"],
+    "6":  ["claude-sonnet-4", "claude-opus-4", "claude-3.5-haiku"],
+    "7":  ["gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-4o", "o3-mini"],
+    "8":  ["qwen3.7-max", "qwen3.7-plus", "qwen3.6-flash"],
+    "9":  ["grok-3", "grok-3-mini"],
+    "10": ["mimo-v2.5-pro", "mimo-v2.5", "mimo-v2-omni", "mimo-v2-flash"],
+    "11": ["hunyuan-turbo"],
+    "12": ["nemotron-ultra-253b", "llama-3.3-nemotron-super-49b-v1"],
+    "13": ["claude-sonnet-4", "gpt-4o"],
+    "14": ["meta-llama/llama-3.1-70b-instruct", "mistralai/mistral-large-latest"],
+    "15": ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.0-flash"],
+    "16": ["gemini-2.5-pro", "gemini-2.5-flash"],
+    "17": ["deepseek-v4-flash", "deepseek-v4-pro", "deepseek-r1"],
+    "18": ["glm-5", "glm-4-plus", "glm-4-flash"],
+    "19": ["moonshot-v1-auto", "kimi-k2"],
+    "20": ["step-1-80k", "step-2-16k"],
+    "21": ["MiniMax-Text-01", "abab6.5s-chat"],
+    "22": ["llama3.1:8b", "mistral:7b"],
+    "23": ["trinity-large-preview"],
+    "24": ["deepseek-v3", "qwen-72b"],
+    "25": ["deepseek-v3", "gpt-4o-mini"],
+    "26": ["claude-sonnet-4", "gpt-4o"],
+    "27": ["anthropic.claude-sonnet-4-20250514-v1:0", "anthropic.claude-3-5-haiku-20241022-v1:0"],
+    "28": ["gpt-4o", "claude-sonnet-4"],
+    "29": ["qwen3.7-max", "qwen3.7-plus"],
+    "30": ["qwen3.7-max", "qwen3.6-flash"],
+}
+
+PROVIDER_URLS = {
+    "1":  "",
+    "2":  "",
+    "3":  "",
+    "4":  "",
+    "5":  "http://localhost:1234/v1",
+    "6":  "",
+    "7":  "",
+    "8":  "",
+    "9":  "",
+    "10": "https://token-plan-cn.xiaomimimo.com/v1",
+    "11": "",
+    "12": "",
+    "13": "",
+    "14": "",
+    "15": "",
+    "16": "",
+    "17": "https://api.deepseek.com/v1",
+    "18": "https://open.bigmodel.cn/api/paas/v4",
+    "19": "",
+    "20": "",
+    "21": "",
+    "22": "http://localhost:11434/v1",
+    "23": "",
+    "24": "",
+    "25": "",
+    "26": "",
+    "27": "",
+    "28": "",
+    "29": "",
+    "30": "",
 }
 
 
@@ -104,32 +169,42 @@ def get_val(cfg, path):
 # ========== 命令实现 ==========
 
 def cmd_model():
-    """模型配置（参考 hermes model）"""
+    """模型配置（完全复制 hermes 格式）"""
     cfg = load_config()
     current = cfg.get("model", {})
+    current_provider = current.get("provider", "")
+    current_num = current.get("provider_num", "10")
 
     print(f"""
-\x1b[36m  Current model:  {current.get('model', '未配置')}
-  Active provider: {current.get('provider', '未配置')}\x1b[0m
+\x1b[36m  Current model:    {current.get('model', '未配置')}
+  Active provider:  {current_provider or '未配置'}\x1b[0m
 """)
 
     print("  Select provider:")
-    for num, p in PROVIDERS.items():
-        marker = "●" if current.get("provider") == p["name"] else "○"
-        print(f"  ({marker}) {num}. {p['name']}")
+    print("  Select by number, Enter to confirm.\n")
 
-    print(f"\n  (○) 0. 返回\n")
-    choice = input("  Choice [default 0]: ").strip() or "0"
+    for num, name, desc in PROVIDERS:
+        marker = "●" if num == current_num else "○"
+        suffix = f"  ← currently active" if num == current_num else ""
+        if desc:
+            print(f"  ({marker}) {num:>2}. {name} ({desc}){suffix}")
+        else:
+            print(f"  ({marker}) {num:>2}. {name}{suffix}")
 
-    if choice == "0":
+    print(f"\n  Choice [default {current_num}]: ", end="")
+    choice = input().strip() or current_num
+
+    if choice == "34":  # Leave unchanged
         return
 
-    if choice not in PROVIDERS:
+    if choice not in [p[0] for p in PROVIDERS]:
         print("  ❌ 无效选择")
         return
 
-    provider = PROVIDERS[choice]
-    print(f"\n  {provider['name']} API key: ", end="")
+    provider_idx = int(choice) - 1
+    provider_name = PROVIDERS[provider_idx][1]
+
+    print(f"\n  {provider_name} API key: ", end="")
 
     current_key = current.get("api_key", "")
     if current_key:
@@ -143,23 +218,29 @@ def cmd_model():
     else:
         current_key = input().strip()
 
-    base_url = input(f"  Base URL [{provider['url']}]: ").strip() or provider["url"]
+    default_url = PROVIDER_URLS.get(choice, "")
+    base_url = input(f"\n  Base URL [{default_url}]: ").strip() or default_url
 
     # 选择模型
-    if provider["models"]:
+    models = PROVIDER_MODELS.get(choice, [])
+    if models:
         print(f"\n  Select default model:")
-        for i, m in enumerate(provider["models"], 1):
-            marker = "●" if current.get("model") == m else "○"
-            print(f"  ({marker}) {i}. {m}")
-        print(f"  (○) {len(provider['models'])+1}. Enter custom model name")
-        print(f"  (○) {len(provider['models'])+2}. Skip (keep current)\n")
+        print("  Select by number, Enter to confirm.\n")
+
+        for i, m in enumerate(models, 1):
+            marker = "●" if m == current.get("model") else "○"
+            suffix = f"  ← currently in use" if m == current.get("model") else ""
+            print(f"  ({marker}) {i}. {m}{suffix}")
+
+        print(f"  (○) {len(models)+1}. Enter custom model name")
+        print(f"  (○) {len(models)+2}. Skip (keep current)\n")
 
         model_choice = input(f"  Choice [default 1]: ").strip() or "1"
         try:
             idx = int(model_choice) - 1
-            if 0 <= idx < len(provider["models"]):
-                model_name = provider["models"][idx]
-            elif idx == len(provider["models"]):
+            if 0 <= idx < len(models):
+                model_name = models[idx]
+            elif idx == len(models):
                 model_name = input("  Custom model name: ").strip()
             else:
                 model_name = current.get("model", "")
@@ -170,14 +251,15 @@ def cmd_model():
 
     # 保存配置
     cfg["model"] = {
-        "provider": provider["name"],
+        "provider": provider_name,
+        "provider_num": choice,
         "api_key": current_key,
         "base_url": base_url,
         "model": model_name,
     }
     save_config(cfg)
 
-    print(f"\n\x1b[32m  ✅ Default model set to: {model_name} (via {provider['name']})\x1b[0m\n")
+    print(f"\n  Default model set to: {model_name} (via {provider_name})\n")
 
 
 def cmd_setup():
