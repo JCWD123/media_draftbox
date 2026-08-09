@@ -1,6 +1,9 @@
 # DraftBox Windows 安装脚本
 # 用法: irm https://raw.githubusercontent.com/JCWD123/media_draftbox/master/install.ps1 | iex
 
+# 强制使用 TLS 1.2（解决 SSL 问题）
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
 $ErrorActionPreference = "Stop"
 
 Write-Host "🚀 DraftBox 安装中..." -ForegroundColor Cyan
@@ -35,7 +38,7 @@ try { wewrite --version 2>$null } catch {
     pip install wewrite -q 2>$null
 }
 
-# 创建 draftbox.cmd（参考 hermes-agent 做法）
+# 创建 draftbox.cmd
 Write-Host "🔧 创建 draftbox 命令..." -ForegroundColor Yellow
 
 $cmdContent = @"
@@ -46,7 +49,7 @@ python cli.py %*
 $cmdPath = "$env:USERPROFILE\draftbox.cmd"
 Set-Content -Path $cmdPath -Value $cmdContent -Encoding ASCII
 
-# 添加到用户 PATH（永久生效）
+# 添加到用户 PATH
 $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
 $userProfile = $env:USERPROFILE
 if ($userPath -notlike "*$userProfile*") {
@@ -54,7 +57,7 @@ if ($userPath -notlike "*$userProfile*") {
     Write-Host "✅ 已添加到用户 PATH" -ForegroundColor Green
 }
 
-# 更新当前会话 PATH（立即生效）
+# 更新当前会话 PATH
 $env:Path = "$env:Path;$userProfile"
 
 Write-Host ""
