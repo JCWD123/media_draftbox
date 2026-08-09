@@ -7,7 +7,12 @@ Write-Host "🚀 DraftBox 安装中..." -ForegroundColor Cyan
 
 # 安装目录
 $InstallDir = "$env:USERPROFILE\.draftbox"
-New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
+
+# 如果目录已存在但不完整，先删除
+if ((Test-Path "$InstallDir") -and -not (Test-Path "$InstallDir\cli.py")) {
+    Write-Host "🔄 清理旧文件..." -ForegroundColor Yellow
+    Remove-Item -Recurse -Force $InstallDir
+}
 
 # 克隆项目
 if (-not (Test-Path "$InstallDir\cli.py")) {
@@ -24,7 +29,7 @@ try { wewrite --version 2>$null } catch {
     pip install wewrite -q 2>$null
 }
 
-# 创建 draftbox.cmd 到用户目录
+# 创建 draftbox.cmd
 $cmdContent = @"
 @echo off
 cd /d "%USERPROFILE%\.draftbox"
@@ -33,22 +38,16 @@ python cli.py %*
 $cmdPath = "$env:USERPROFILE\draftbox.cmd"
 Set-Content -Path $cmdPath -Value $cmdContent -Encoding ASCII
 
-# 添加到用户 PATH（永久生效）
+# 添加到 PATH
 $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
 $userProfile = $env:USERPROFILE
 if ($userPath -notlike "*$userProfile*") {
     [Environment]::SetEnvironmentVariable("Path", "$userPath;$userProfile", "User")
-    Write-Host "✅ 已添加到用户 PATH" -ForegroundColor Green
 }
-
-# 更新当前会话 PATH（立即生效）
 $env:Path = "$env:Path;$userProfile"
 
 Write-Host ""
 Write-Host "✅ 安装完成！" -ForegroundColor Green
-Write-Host ""
-Write-Host "📝 立即可用："
-Write-Host "   draftbox setup    # 配置向导"
 Write-Host ""
 
 # 立即执行 setup
