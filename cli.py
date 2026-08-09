@@ -16,14 +16,44 @@ from pathlib import Path
 CONFIG_DIR = Path.home() / ".draftbox"
 CONFIG_FILE = CONFIG_DIR / "config.yaml"
 
-# 模型提供商配置
+# 模型提供商配置（官网核实）
 PROVIDERS = {
-    "1": {"name": "Xiaomi MiMo", "key_env": "MIMO_API_KEY", "url": "https://token-plan-cn.xiaomimimo.com/v1", "models": ["mimo-v2.5", "mimo-v2.5-pro", "mimo-v2-omni"]},
-    "2": {"name": "DeepSeek", "key_env": "DEEPSEEK_API_KEY", "url": "https://api.deepseek.com/v1", "models": ["deepseek-chat", "deepseek-coder"]},
-    "3": {"name": "OpenAI", "key_env": "OPENAI_API_KEY", "url": "https://api.openai.com/v1", "models": ["gpt-4", "gpt-3.5-turbo"]},
-    "4": {"name": "通义千问", "key_env": "DASHSCOPE_API_KEY", "url": "https://dashscope.aliyuncs.com/compatible-mode/v1", "models": ["qwen-turbo", "qwen-plus"]},
-    "5": {"name": "智谱AI", "key_env": "ZHIPU_API_KEY", "url": "https://open.bigmodel.cn/api/paas/v4", "models": ["glm-4", "glm-3-turbo"]},
-    "6": {"name": "自定义", "key_env": "", "url": "", "models": []},
+    "1": {
+        "name": "Xiaomi MiMo",
+        "url": "https://token-plan-cn.xiaomimimo.com/v1",
+        "models": ["mimo-v2.5", "mimo-v2.5-pro", "mimo-v2-omni", "mimo-v2-flash"],
+        "note": "MiMo-V2.5系列，pro更强，flash更快"
+    },
+    "2": {
+        "name": "DeepSeek",
+        "url": "https://api.deepseek.com/v1",
+        "models": ["deepseek-v4-flash", "deepseek-v4-pro"],
+        "note": "V4系列，flash快速，pro深度推理"
+    },
+    "3": {
+        "name": "OpenAI",
+        "url": "https://api.openai.com/v1",
+        "models": ["gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-4o"],
+        "note": "GPT-5.6系列：sol强推理/terra平衡/luna经济"
+    },
+    "4": {
+        "name": "通义千问",
+        "url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        "models": ["qwen3.7-max", "qwen3.7-plus", "qwen3.6-flash"],
+        "note": "Qwen3.7系列，max最强/plus均衡/flash快速"
+    },
+    "5": {
+        "name": "智谱AI",
+        "url": "https://open.bigmodel.cn/api/paas/v4",
+        "models": ["glm-5", "glm-4-plus", "glm-4-flash"],
+        "note": "GLM-5系列，745B参数，200K上下文"
+    },
+    "6": {
+        "name": "自定义",
+        "url": "",
+        "models": [],
+        "note": "手动输入API地址和模型名"
+    },
 }
 
 
@@ -101,18 +131,15 @@ def cmd_model():
     provider = PROVIDERS[choice]
     print(f"\n  {provider['name']} API key: ", end="")
 
-    if provider["key_env"]:
-        current_key = os.environ.get(provider["key_env"], current.get("api_key", ""))
-        if current_key:
-            masked = current_key[:8] + "..." + current_key[-4:] if len(current_key) > 12 else "***"
-            print(f"{masked} ✓")
-            action = input("  [K]eep / [R]eplace / [C]lear (default K): ").strip().upper() or "K"
-            if action == "C":
-                current_key = ""
-            elif action == "R":
-                current_key = input("  New API key: ").strip()
-        else:
-            current_key = input().strip()
+    current_key = current.get("api_key", "")
+    if current_key:
+        masked = current_key[:8] + "..." + current_key[-4:] if len(current_key) > 12 else "***"
+        print(f"{masked} ✓")
+        action = input("  [K]eep / [R]eplace / [C]lear (default K): ").strip().upper() or "K"
+        if action == "C":
+            current_key = ""
+        elif action == "R":
+            current_key = input("  New API key: ").strip()
     else:
         current_key = input().strip()
 
