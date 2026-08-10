@@ -35,6 +35,13 @@ if ! command -v wewrite &> /dev/null; then
     pip install wewrite -q 2>/dev/null || true
 fi
 
+# 安装前端依赖
+echo "📦 安装前端依赖..."
+if [ -f "$INSTALL_DIR/web/package.json" ]; then
+    cd "$INSTALL_DIR/web" && npm install && cd -
+    echo "  ✅ 前端依赖安装完成"
+fi
+
 # 创建 draftbox 命令
 echo "🔧 创建 draftbox 命令..."
 
