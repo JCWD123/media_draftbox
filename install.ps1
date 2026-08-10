@@ -36,7 +36,7 @@ try { wewrite --version 2>$null } catch {
     pip install wewrite -q 2>$null
 }
 
-# 创建 draftbox.cmd（永久保存到用户目录）
+# 创建 draftbox.cmd
 Write-Host "🔧 创建 draftbox 命令..." -ForegroundColor Yellow
 
 $cmdContent = @"
@@ -48,13 +48,17 @@ $cmdPath = "$env:USERPROFILE\draftbox.cmd"
 Set-Content -Path $cmdPath -Value $cmdContent -Encoding ASCII
 Write-Host "  ✅ 已创建 $cmdPath" -ForegroundColor Green
 
-# 添加用户目录到 PATH（永久生效）
-$userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+# 永久保存环境变量到 PATH（使用 setx 命令）
+Write-Host "🔧 配置环境变量..." -ForegroundColor Yellow
+
+$currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
 $userProfile = $env:USERPROFILE
 
-if ($userPath -notlike "*$userProfile*") {
-    [Environment]::SetEnvironmentVariable("Path", "$userPath;$userProfile", "User")
-    Write-Host "  ✅ 已添加 $userProfile 到用户 PATH" -ForegroundColor Green
+if ($currentPath -notlike "*$userProfile*") {
+    $newPath = "$currentPath;$userProfile"
+    # 使用 setx 永久保存（重启后依然生效）
+    setx PATH "$newPath" | Out-Null
+    Write-Host "  ✅ 已永久添加 $userProfile 到用户 PATH" -ForegroundColor Green
 } else {
     Write-Host "  ✅ 用户目录已在 PATH 中" -ForegroundColor Green
 }
@@ -65,7 +69,7 @@ $env:Path = "$env:Path;$userProfile"
 Write-Host ""
 Write-Host "✅ 安装完成！" -ForegroundColor Green
 Write-Host ""
-Write-Host "📝 使用方法："
+Write-Host "📝 使用方法（重启终端后永久生效）："
 Write-Host "   draftbox setup    # 配置向导"
 Write-Host "   draftbox model    # 模型配置"
 Write-Host "   draftbox start    # 启动服务"
