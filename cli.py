@@ -315,8 +315,8 @@ def cmd_start():
     python_exe = sys.executable
     
     subprocess.Popen(
-        [python_exe, "-m", "uvicorn", "backend.main:app", "--port", str(port), "--host", "0.0.0.0"],
-        cwd=str(CONFIG_DIR)
+        [python_exe, "-m", "uvicorn", "main:app", "--port", str(port), "--host", "0.0.0.0"],
+        cwd=str(CONFIG_DIR / "backend")
     )
 
     web_dir = CONFIG_DIR / "web"
