@@ -302,6 +302,7 @@ def cmd_setup():
 def cmd_start():
     """启动服务"""
     import subprocess
+    import shutil
     ensure_dir()
     cfg = load_config()
     port = cfg.get("server",{}).get("port", 8502)
@@ -310,8 +311,11 @@ def cmd_start():
     print(f"   后端: http://localhost:{port}")
     print(f"   前端: http://localhost:3000\n")
 
+    # 使用系统 Python 而不是 venv Python
+    python_exe = shutil.which("python") or sys.executable
+    
     subprocess.Popen(
-        [sys.executable, "-m", "uvicorn", "backend.main:app", "--port", str(port), "--host", "0.0.0.0"],
+        [python_exe, "-m", "uvicorn", "backend.main:app", "--port", str(port), "--host", "0.0.0.0"],
         cwd=str(CONFIG_DIR)
     )
 
