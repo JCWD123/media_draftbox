@@ -52,15 +52,15 @@ class NewsRequest(BaseModel):
 
 # ========== 热点新闻 API ==========
 
-# RSS 源列表
+# RSS 源列表（更可靠的源）
 RSS_SOURCES = {
     "hot": [
-        "https://feedx.net/rss/solidot.xml",
-        "https://rsshub.app/zaobao/realtime/china",
+        "https://hnrss.org/frontpage",
+        "https://rsshub.app/zhihu/hotlist",
     ],
     "tech": [
+        "https://hnrss.org/frontpage",
         "https://rsshub.app/36kr/newsflashes",
-        "https://rsshub.app/ithome/ranking",
     ],
     "finance": [
         "https://rsshub.app/wallstreetcn/news/global",
@@ -75,7 +75,7 @@ RSS_SOURCES = {
         "https://rsshub.app/thepaper/featured",
     ],
     "international": [
-        "https://rsshub.app/bbc/zhongwen",
+        "https://hnrss.org/frontpage",
     ],
 }
 
