@@ -35,38 +35,42 @@ if ! command -v wewrite &> /dev/null; then
     pip install wewrite -q 2>/dev/null || true
 fi
 
-# 创建 draftbox 命令（参考 hermes-agent 做法）
+# 创建 draftbox 命令
 echo "🔧 创建 draftbox 命令..."
 
-# Linux/macOS: 创建符号链接到用户目录的 bin
-if [ -d "$HOME/.local/bin" ]; then
-    mkdir -p "$HOME/.local/bin"
-    cat > "$HOME/.local/bin/draftbox" << 'COMMAND'
+# 创建 ~/.local/bin 目录（如果不存在）
+mkdir -p "$HOME/.local/bin"
+
+# 创建 draftbox 脚本
+cat > "$HOME/.local/bin/draftbox" << 'COMMAND'
 #!/bin/bash
 cd ~/.draftbox
 python cli.py "$@"
 COMMAND
-    chmod +x "$HOME/.local/bin/draftbox"
-    
-    # 添加到 PATH（如果还没有）
-    if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
-        echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.bashrc"
-        export PATH="$HOME/.local/bin:$PATH"
-        echo "✅ 已添加 ~/.local/bin 到 PATH"
-    fi
+chmod +x "$HOME/.local/bin/draftbox"
+echo "  ✅ 已创建 ~/.local/bin/draftbox"
+
+# 添加到 ~/.bashrc（永久保存）
+if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.bashrc"
+    echo "  ✅ 已添加到 ~/.bashrc（永久保存）"
 fi
 
-# macOS: 添加到 zshrc
+# macOS: 添加到 ~/.zshrc
 if [ -f "$HOME/.zshrc" ]; then
     if ! grep -q ".local/bin" "$HOME/.zshrc" 2>/dev/null; then
         echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.zshrc"
+        echo "  ✅ 已添加到 ~/.zshrc（永久保存）"
     fi
 fi
+
+# 更新当前会话 PATH（立即生效）
+export PATH="$HOME/.local/bin:$PATH"
 
 echo ""
 echo "✅ 安装完成！"
 echo ""
-echo "📝 使用方法（重启终端后生效）："
+echo "📝 使用方法（重启终端后永久生效）："
 echo "   draftbox setup    # 配置向导"
 echo "   draftbox model    # 模型配置"
 echo "   draftbox start    # 启动服务"
