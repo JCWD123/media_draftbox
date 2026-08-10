@@ -11,12 +11,26 @@ DraftBox CLI
 import yaml
 import sys
 import os
+import tty
+import termios
 from pathlib import Path
 
 CONFIG_DIR = Path.home() / ".draftbox"
 CONFIG_FILE = CONFIG_DIR / "config.yaml"
 
-# 模型提供商配置（完全复制 hermes 格式）
+# 检测是否是交互式终端
+def is_interactive():
+    return sys.stdin.isatty()
+
+# 安全的 input 函数（非交互模式返回默认值）
+def safe_input(prompt, default=""):
+    if not is_interactive():
+        print(f"{prompt}{default}")
+        return default
+    return input(prompt).strip() or default
+
+# ... PROVIDERS 和其他配置保持不变 ...
+
 PROVIDERS = [
     ("1",  "Nous Portal", "Everything your agent needs, 300+ models"),
     ("2",  "OpenRouter", "Pay-per-use API aggregator"),
@@ -143,7 +157,7 @@ def get_val(cfg, path):
 # ========== 命令实现 ==========
 
 def cmd_model():
-    """模型配置（完全复制 hermes 格式）"""
+    """模型配置"""
     cfg = load_config()
     current = cfg.get("model", {})
     current_provider = current.get("provider", "")
@@ -235,7 +249,7 @@ def cmd_model():
 
 
 def cmd_setup():
-    """配置向导（每步立即缓存）"""
+    """配置向导（支持非交互模式）"""
     print("""
 \x1b[36m╔══════════════════════════════════════════════════════════════╗
 ║            DraftBox 配置向导                                 ║
@@ -243,27 +257,36 @@ def cmd_setup():
 """)
     cfg = load_config()
 
-    # 图片搜索配置（每步立即缓存）
+    # 检测是否是交互式终端
+    if not is_interactive():
+        print("  ⚠️  非交互模式，跳过配置向导")
+        print("  请手动编辑配置文件：~/.draftbox/config.yaml")
+        print("")
+        print("  或者运行：draftbox config set <key> <value>")
+        print("")
+        return
+
+    # 图片搜索配置
     print("\x1b[36m  ── 图片搜索 ──\x1b[0m")
     
-    pexels = input(f"  Pexels Key [{cfg.get('search',{}).get('pexels_key','') or '未设置'}]: ").strip()
+    pexels = safe_input(f"  Pexels Key [{cfg.get('search',{}).get('pexels_key','') or '未设置'}]: ")
     if pexels:
         cfg.setdefault("search",{})["pexels_key"] = pexels
-        save_config(cfg)  # 立即缓存
+        save_config(cfg)
         print("  ✅ 已保存")
 
-    unsplash = input(f"  Unsplash Key [{cfg.get('search',{}).get('unsplash_key','') or '未设置'}]: ").strip()
+    unsplash = safe_input(f"  Unsplash Key [{cfg.get('search',{}).get('unsplash_key','') or '未设置'}]: ")
     if unsplash:
         cfg.setdefault("search",{})["unsplash_key"] = unsplash
-        save_config(cfg)  # 立即缓存
+        save_config(cfg)
         print("  ✅ 已保存")
 
     # 服务端口
     print("\n\x1b[36m  ── 服务端口 ──\x1b[0m")
-    port = input(f"  后端端口 [{cfg.get('server',{}).get('port',8502)}]: ").strip()
+    port = safe_input(f"  后端端口 [{cfg.get('server',{}).get('port',8502)}]: ")
     if port:
         cfg.setdefault("server",{})["port"] = int(port)
-        save_config(cfg)  # 立即缓存
+        save_config(cfg)
         print("  ✅ 已保存")
 
     print(f"\n\x1b[32m  ✅ 配置完成！\x1b[0m")
