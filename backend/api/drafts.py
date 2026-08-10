@@ -2,15 +2,10 @@
 草稿管理 API 路由
 """
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from model.schemas import DraftSaveRequest
 from service.drafts import list_drafts, save_draft, get_draft, delete_draft
 
 router = APIRouter()
-
-
-class DraftSaveRequest(BaseModel):
-    title: str
-    content: str
 
 
 @router.get("")
