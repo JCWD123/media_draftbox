@@ -41,7 +41,8 @@ Write-Host "📦 安装前端依赖..." -ForegroundColor Yellow
 $webDir = "$InstallDir\web"
 if (Test-Path "$webDir\package.json") {
     Push-Location $webDir
-    npm install
+    # 使用 cmd /c npm 避免 PowerShell 执行策略问题
+    cmd /c "npm install"
     Pop-Location
     Write-Host "  ✅ 前端依赖安装完成" -ForegroundColor Green
 }
