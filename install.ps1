@@ -48,23 +48,34 @@ $cmdPath = "$env:USERPROFILE\draftbox.cmd"
 Set-Content -Path $cmdPath -Value $cmdContent -Encoding ASCII
 Write-Host "  ✅ 已创建 $cmdPath" -ForegroundColor Green
 
-# 永久保存环境变量到 PATH（使用 setx 命令）
-Write-Host "🔧 配置环境变量..." -ForegroundColor Yellow
-
+# 获取当前用户 PATH
 $currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
 $userProfile = $env:USERPROFILE
 
+# 检查是否已存在
 if ($currentPath -notlike "*$userProfile*") {
-    $newPath = "$currentPath;$userProfile"
-    # 使用 setx 永久保存（重启后依然生效）
-    setx PATH "$newPath" | Out-Null
-    Write-Host "  ✅ 已永久添加 $userProfile 到用户 PATH" -ForegroundColor Green
+    Write-Host "🔧 配置环境变量..." -ForegroundColor Yellow
+    
+    # 构建新的 PATH（包含常用目录）
+    $newPath = "$currentPath;$userProfile\.local\bin;$userProfile\bin;$userProfile"
+    
+    # 使用 setx 永久保存（有 1024 字符限制）
+    # 如果超过限制，使用注册表方式
+    if ($newPath.Length -gt 1024) {
+        # 注册表方式（无长度限制）
+        $regPath = "HKCU:\Environment"
+        Set-ItemProperty -Path $regPath -Name "Path" -Value $newPath
+        Write-Host "  ✅ 已永久添加到用户 PATH（注册表方式）" -ForegroundColor Green
+    } else {
+        setx PATH "$newPath" | Out-Null
+        Write-Host "  ✅ 已永久添加到用户 PATH（setx方式）" -ForegroundColor Green
+    }
 } else {
     Write-Host "  ✅ 用户目录已在 PATH 中" -ForegroundColor Green
 }
 
 # 更新当前会话 PATH（立即生效）
-$env:Path = "$env:Path;$userProfile"
+$env:Path = "$env:Path;$userProfile\.local\bin;$userProfile\bin;$userProfile"
 
 Write-Host ""
 Write-Host "✅ 安装完成！" -ForegroundColor Green
