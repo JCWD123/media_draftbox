@@ -1,5 +1,5 @@
 """
-DraftBox 后端 - FastAPI + wewrite + LanguageTool + Unsplash + 热点新闻
+DraftBox 后端 - FastAPI + wewrite + LanguageTool + Unsplash + 热点新闻（调用VPS API）
 """
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,9 +10,7 @@ import os
 import json
 import yaml
 import requests
-import feedparser
 from pathlib import Path
-from datetime import datetime
 
 app = FastAPI(title="DraftBox API")
 
@@ -28,6 +26,9 @@ def load_config():
 
 DRAFTS_DIR = Path.home() / ".draftbox" / "drafts"
 DRAFTS_DIR.mkdir(parents=True, exist_ok=True)
+
+# VPS 新闻 API 地址
+NEWS_API_BASE = "https://draftbox.arbismart.cloud/api/v1"
 
 class ConvertRequest(BaseModel):
     markdown: str
@@ -46,78 +47,56 @@ class ImageSearchRequest(BaseModel):
     count: int = 12
 
 class NewsRequest(BaseModel):
-    category: str = "hot"
-    count: int = 20
+    category: str = "TECH"
+    page: int = 1
+    page_size: int = 20
 
 
-# ========== 热点新闻 API ==========
-
-# RSS 源列表（更可靠的源）
-RSS_SOURCES = {
-    "hot": [
-        "https://hnrss.org/frontpage",
-        "https://rsshub.app/zhihu/hotlist",
-    ],
-    "tech": [
-        "https://hnrss.org/frontpage",
-        "https://rsshub.app/36kr/newsflashes",
-    ],
-    "finance": [
-        "https://rsshub.app/wallstreetcn/news/global",
-    ],
-    "entertainment": [
-        "https://rsshub.app/douban/movie/weekly",
-    ],
-    "sports": [
-        "https://rsshub.app/zhihu/hotlist",
-    ],
-    "society": [
-        "https://rsshub.app/thepaper/featured",
-    ],
-    "international": [
-        "https://hnrss.org/frontpage",
-    ],
-}
-
-def fetch_rss_news(sources: list, count: int = 20) -> list:
-    """从 RSS 源获取新闻"""
-    news = []
-    for source in sources:
-        try:
-            feed = feedparser.parse(source)
-            for entry in feed.entries[:count]:
-                news.append({
-                    "title": entry.get("title", ""),
-                    "summary": entry.get("summary", "")[:200],
-                    "link": entry.get("link", ""),
-                    "published": entry.get("published", ""),
-                    "source": feed.feed.get("title", source),
-                })
-        except Exception as e:
-            continue
-    return news[:count]
-
+# ========== 热点新闻 API（调用VPS） ==========
 
 @app.get("/api/news/categories")
 async def news_categories():
-    """获取新闻分类"""
-    return {"categories": [
-        {"id": "hot", "name": "🔥 热门"},
-        {"id": "tech", "name": "💻 科技"},
-        {"id": "finance", "name": "💰 财经"},
-        {"id": "entertainment", "name": "🎬 娱乐"},
-        {"id": "sports", "name": "⚽ 体育"},
-        {"id": "society", "name": "📰 社会"},
-        {"id": "international", "name": "🌍 国际"},
-    ]}
+    """获取新闻分类（从VPS同步）"""
+    try:
+        resp = requests.get(f"{NEWS_API_BASE}/news/categories", timeout=10)
+        return resp.json()
+    except:
+        # 本地备用分类
+        return {"data": [
+            {"category_code": "FINANCE", "category_name": "财经金融", "icon": "trending_up"},
+            {"category_code": "TECH", "category_name": "科技数码", "icon": "devices"},
+            {"category_code": "SOCIAL", "category_name": "社会热点", "icon": "public"},
+            {"category_code": "DEVELOPER", "category_name": "开发者", "icon": "code"},
+            {"category_code": "VIDEO", "category_name": "视频平台", "icon": "play_circle"},
+            {"category_code": "COMMUNITY", "category_name": "社区论坛", "icon": "forum"},
+            {"category_code": "KNOWLEDGE", "category_name": "知识问答", "icon": "school"},
+        ]}
 
 
 @app.post("/api/news/list")
 async def news_list(req: NewsRequest):
-    """获取新闻列表"""
-    sources = RSS_SOURCES.get(req.category, RSS_SOURCES["hot"])
-    news = fetch_rss_news(sources, req.count)
-    return {"news": news, "category": req.category}
+    """获取新闻列表（从VPS同步）"""
+    try:
+        resp = requests.get(
+            f"{NEWS_API_BASE}/news/raw/list",
+            params={"page": req.page, "page_size": req.page_size, "category": req.category, "days": 7},
+            timeout=15
+        )
+        data = resp.json()
+        # 转换为前端格式
+        news = []
+        for item in data.get("news", []):
+            news.append({
+                "title": item.get("title", ""),
+                "summary": "",
+                "link": item.get("url", ""),
+                "published": item.get("news_date", "")[:10],
+                "source": item.get("source_name", ""),
+                "category": item.get("category", ""),
+            })
+        return {"news": news, "category": req.category, "total": data.get("total", 0)}
+    except Exception as e:
+        return {"news": [], "error": str(e)}
 
 
 # ========== 其他 API ==========

@@ -40,17 +40,26 @@ export default function App() {
   const [drafts, setDrafts] = useState([])
   const [draftTitle, setDraftTitle] = useState('')
   const [news, setNews] = useState([])
-  const [newsCategory, setNewsCategory] = useState('hot')
+  const [newsCategory, setNewsCategory] = useState('TECH')
   const [newsCategories, setNewsCategories] = useState([])
   const [newsLoading, setNewsLoading] = useState(false)
 
   useEffect(() => { setHtml(`<style>${WECHAT_CSS}</style><div>${md.render(markdown)}</div>`) }, [markdown])
   useEffect(() => { if (tab === 'drafts') fetch(`${API}/drafts`).then(r => r.json()).then(d => setDrafts(d.drafts || [])).catch(() => {}) }, [tab])
-  useEffect(() => { fetch(`${API}/news/categories`).then(r => r.json()).then(d => setNewsCategories(d.categories || [])).catch(() => {}) }, [])
+  useEffect(() => {
+    fetch(`${API}/news/categories`).then(r => r.json()).then(d => {
+      const cats = (d.data || []).map(c => ({ id: c.category_code, name: c.category_name, icon: c.icon }))
+      setNewsCategories(cats)
+    }).catch(() => {})
+  }, [])
 
   const loadNews = async (cat) => {
     setNewsCategory(cat); setNewsLoading(true)
-    try { const r = await fetch(`${API}/news/list`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ category: cat, count: 20 }) }); const d = await r.json(); setNews(d.news || []) } catch (e) { setNews([]) }
+    try {
+      const r = await fetch(`${API}/news/list`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ category: cat, page: 1, page_size: 20 }) })
+      const d = await r.json()
+      setNews(d.news || [])
+    } catch (e) { setNews([]) }
     setNewsLoading(false)
   }
 
