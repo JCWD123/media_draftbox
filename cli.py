@@ -311,7 +311,11 @@ def cmd_start():
 
     web_dir = CONFIG_DIR / "web"
     if web_dir.exists():
-        subprocess.Popen(["npm", "run", "dev"], cwd=str(web_dir))
+        # Windows: 使用 cmd /c npm 避免执行策略问题
+        if sys.platform == "win32":
+            subprocess.Popen(["cmd", "/c", "npm", "run", "dev"], cwd=str(web_dir))
+        else:
+            subprocess.Popen(["npm", "run", "dev"], cwd=str(web_dir))
 
     print("✅ 服务已启动！\n")
 
