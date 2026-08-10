@@ -11,9 +11,15 @@ DraftBox CLI
 import yaml
 import sys
 import os
-import tty
-import termios
 from pathlib import Path
+
+# tty/termios 只在 Unix 系统可用
+if sys.platform != "win32":
+    try:
+        import tty
+        import termios
+    except ImportError:
+        pass
 
 CONFIG_DIR = Path.home() / ".draftbox"
 CONFIG_FILE = CONFIG_DIR / "config.yaml"
