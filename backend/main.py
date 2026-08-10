@@ -1,6 +1,14 @@
 """
 DraftBox 后端入口 - 参考 hermes-agent 架构
 """
+import sys
+from pathlib import Path
+
+# 添加 backend 目录到 Python 路径
+backend_dir = Path(__file__).parent
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api import news, convert, grammar, images, drafts, plugins, execute

@@ -311,8 +311,8 @@ def cmd_start():
     print(f"   后端: http://localhost:{port}")
     print(f"   前端: http://localhost:3000\n")
 
-    # 使用系统 Python 而不是 venv Python
-    python_exe = shutil.which("python") or sys.executable
+    # 使用当前运行的 Python 解释器（避免 venv 冲突）
+    python_exe = sys.executable
     
     subprocess.Popen(
         [python_exe, "-m", "uvicorn", "backend.main:app", "--port", str(port), "--host", "0.0.0.0"],
