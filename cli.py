@@ -54,7 +54,6 @@ PROVIDERS = [
     ("34", "Leave unchanged", ""),
 ]
 
-# 各提供商的模型列表
 PROVIDER_MODELS = {
     "1":  ["claude-sonnet-4", "claude-opus-4", "gpt-4o", "deepseek-v3"],
     "2":  ["anthropic/claude-sonnet-4", "openai/gpt-4o", "google/gemini-pro", "deepseek/deepseek-chat"],
@@ -89,36 +88,11 @@ PROVIDER_MODELS = {
 }
 
 PROVIDER_URLS = {
-    "1":  "",
-    "2":  "",
-    "3":  "",
-    "4":  "",
     "5":  "http://localhost:1234/v1",
-    "6":  "",
-    "7":  "",
-    "8":  "",
-    "9":  "",
     "10": "https://token-plan-cn.xiaomimimo.com/v1",
-    "11": "",
-    "12": "",
-    "13": "",
-    "14": "",
-    "15": "",
-    "16": "",
     "17": "https://api.deepseek.com/v1",
     "18": "https://open.bigmodel.cn/api/paas/v4",
-    "19": "",
-    "20": "",
-    "21": "",
     "22": "http://localhost:11434/v1",
-    "23": "",
-    "24": "",
-    "25": "",
-    "26": "",
-    "27": "",
-    "28": "",
-    "29": "",
-    "30": "",
 }
 
 
@@ -194,7 +168,7 @@ def cmd_model():
     print(f"\n  Choice [default {current_num}]: ", end="")
     choice = input().strip() or current_num
 
-    if choice == "34":  # Leave unchanged
+    if choice == "34":
         return
 
     if choice not in [p[0] for p in PROVIDERS]:
@@ -221,7 +195,6 @@ def cmd_model():
     default_url = PROVIDER_URLS.get(choice, "")
     base_url = input(f"\n  Base URL [{default_url}]: ").strip() or default_url
 
-    # 选择模型
     models = PROVIDER_MODELS.get(choice, [])
     if models:
         print(f"\n  Select default model:")
@@ -249,7 +222,6 @@ def cmd_model():
     else:
         model_name = input(f"  Model name [{current.get('model', '')}]: ").strip() or current.get("model", "")
 
-    # 保存配置
     cfg["model"] = {
         "provider": provider_name,
         "provider_num": choice,
@@ -263,7 +235,7 @@ def cmd_model():
 
 
 def cmd_setup():
-    """配置向导"""
+    """配置向导（每步立即缓存）"""
     print("""
 \x1b[36m╔══════════════════════════════════════════════════════════════╗
 ║            DraftBox 配置向导                                 ║
@@ -271,18 +243,29 @@ def cmd_setup():
 """)
     cfg = load_config()
 
+    # 图片搜索配置（每步立即缓存）
     print("\x1b[36m  ── 图片搜索 ──\x1b[0m")
+    
     pexels = input(f"  Pexels Key [{cfg.get('search',{}).get('pexels_key','') or '未设置'}]: ").strip()
-    if pexels: cfg.setdefault("search",{})["pexels_key"] = pexels
+    if pexels:
+        cfg.setdefault("search",{})["pexels_key"] = pexels
+        save_config(cfg)  # 立即缓存
+        print("  ✅ 已保存")
 
     unsplash = input(f"  Unsplash Key [{cfg.get('search',{}).get('unsplash_key','') or '未设置'}]: ").strip()
-    if unsplash: cfg.setdefault("search",{})["unsplash_key"] = unsplash
+    if unsplash:
+        cfg.setdefault("search",{})["unsplash_key"] = unsplash
+        save_config(cfg)  # 立即缓存
+        print("  ✅ 已保存")
 
+    # 服务端口
     print("\n\x1b[36m  ── 服务端口 ──\x1b[0m")
     port = input(f"  后端端口 [{cfg.get('server',{}).get('port',8502)}]: ").strip()
-    if port: cfg.setdefault("server",{})["port"] = int(port)
+    if port:
+        cfg.setdefault("server",{})["port"] = int(port)
+        save_config(cfg)  # 立即缓存
+        print("  ✅ 已保存")
 
-    save_config(cfg)
     print(f"\n\x1b[32m  ✅ 配置完成！\x1b[0m")
     print(f"\n  启动: draftbox start\n")
 
@@ -339,7 +322,6 @@ def main():
     ensure_dir()
 
     if len(sys.argv) < 2:
-        # 默认启动服务
         cmd_start()
         return
 
