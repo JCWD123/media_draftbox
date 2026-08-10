@@ -29,7 +29,7 @@ if (-not (Test-Path "$InstallDir\cli.py")) {
 
 # 安装 Python 依赖
 Write-Host "📦 安装依赖..." -ForegroundColor Yellow
-pip install fastapi uvicorn pyyaml requests markdown beautifulsoup4 Pillow -q
+pip install fastapi uvicorn pyyaml requests markdown beautifulsoup4 Pillow feedparser -q
 
 # 安装 wewrite
 try { wewrite --version 2>$null } catch {

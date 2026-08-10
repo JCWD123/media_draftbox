@@ -28,7 +28,7 @@ fi
 
 # 安装 Python 依赖
 echo "📦 安装依赖..."
-pip install fastapi uvicorn pyyaml requests markdown beautifulsoup4 Pillow -q
+pip install fastapi uvicorn pyyaml requests markdown beautifulsoup4 Pillow feedparser -q
 
 # 安装 wewrite
 if ! command -v wewrite &> /dev/null; then
