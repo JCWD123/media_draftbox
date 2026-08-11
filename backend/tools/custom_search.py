@@ -96,6 +96,7 @@ def search_news(query: str, limit: int = 12, region: str = "cn-zh", language: st
             "source": source,
             "category": "SEARCH",
             "_backend": source_backend,
+            "_cn": _cn_ratio(title, item.get("body") or ""),
         }
         with _CACHE_LOCK:
             SEARCH_CACHE[nid] = entry
@@ -105,7 +106,18 @@ def search_news(query: str, limit: int = 12, region: str = "cn-zh", language: st
         if len(news) >= limit:
             break
 
+    # 中文优先排序（标题/正文中文字符占比高的靠前），保持用户对中文新闻的期望
+    news.sort(key=lambda x: x.get("_cn", 0), reverse=True)
     return {"news": news, "total": len(news), "query": query}
+
+
+def _cn_ratio(title: str, body: str) -> float:
+    """估算一条结果的中文含量（标题+正文中文字符占比），用于中文优先排序"""
+    text = (title + " " + body)
+    if not text.strip():
+        return 0.0
+    cn = len(re.findall(r"[\u4e00-\u9fff]", text))
+    return cn / max(len(text), 1) * 100  # 千分位
 
 
 def get_from_cache(ids: List[str]) -> List[Dict]:
