@@ -12,6 +12,11 @@ export default function App() {
   const [markdown, setMarkdown] = useState('# 标题\n\n这是测试内容')
   const [html, setHtml] = useState('') // 当前 wewrite 排版结果
   const [toast, setToast] = useState(null)
+  // 自定义搜索结果的全局状态（切 Tab 后保留，直到下次搜索才更新）
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState([])
+  const [searching, setSearching] = useState(false)
+  const [selectedNews, setSelectedNews] = useState(new Set()) // 勾选的新闻素材（全局保留）
   const toastTimer = useRef(null)
 
   // 全局 toast（自动 3s 消失）
@@ -29,7 +34,9 @@ export default function App() {
 
   const contextValue = useMemo(() => ({
     markdown, setMarkdown, html, setHtml, showToast, saveAsDraft,
-  }), [markdown, html, showToast, saveAsDraft])
+    searchQuery, setSearchQuery, searchResults, setSearchResults, searching, setSearching,
+    selectedNews, setSelectedNews,
+  }), [markdown, html, showToast, saveAsDraft, searchQuery, searchResults, searching, selectedNews])
 
   return (
     <AppContext.Provider value={contextValue}>

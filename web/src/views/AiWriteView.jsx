@@ -16,7 +16,11 @@ import { useApp } from '../utils/AppContext'
  * AI 写作页（三模态编排）
  */
 export default function AiWriteView() {
-  const { setMarkdown, html, setHtml, saveAsDraft, showToast } = useApp()
+  const {
+    setMarkdown, html, setHtml, saveAsDraft, showToast,
+    searchQuery, setSearchQuery, searchResults, setSearchResults, searching, setSearching,
+    selectedNews: selected, setSelectedNews: setSelected,
+  } = useApp()
   const navigate = useNavigate()
   const [topic, setTopic] = useState('')
   const [withImages, setWithImages] = useState(true)
@@ -24,12 +28,6 @@ export default function AiWriteView() {
   const [categories, setCategories] = useState([])
   const [activeCat, setActiveCat] = useState('TECH')
   const [news, setNews] = useState([])
-  const [selected, setSelected] = useState(new Set())
-
-  // 自定义新闻搜索
-  const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState([])
-  const [searching, setSearching] = useState(false)
 
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState('')
