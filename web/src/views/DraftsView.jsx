@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import Button from '../components/common/Button'
 import { listDrafts, getDraft, saveDraft, deleteDraft } from '../service/api/drafts'
+import { sanitizePreviewHtml } from '../utils/sanitizePreview'
 import { useApp } from '../utils/AppContext'
 
 // 从 markdown 或 html 自动提取标题
@@ -104,7 +105,7 @@ export default function DraftsView() {
           {previewMeta && <span className="muted">{previewMeta}</span>}
         </div>
         {previewHtml ? (
-          <div className="preview" dangerouslySetInnerHTML={{ __html: previewHtml }} />
+          <div className="preview" dangerouslySetInnerHTML={{ __html: sanitizePreviewHtml(previewHtml, { widen: true }) }} />
         ) : (
           <div className="news-empty">
             {previewMeta ? `${previewMeta} 暂无 HTML 预览，请到排版页生成或保存时带 HTML` : '点击左侧草稿查看排版预览'}

@@ -56,23 +56,23 @@ export default function ConvertView() {
     } catch (e) { showToast('error', `复制失败: ${e.message}`) }
   }
 
-  // 从草稿加载某篇文章的 markdown 并渲染
+  // 从草稿加载某篇文章并渲染
   const loadFromDraft = async (filename) => {
     try {
       const d = await getDraft(filename)
-      if (d.markdown) {
-        setMarkdown(d.markdown)
-        setCurrentSource(d.title || filename)
-        // 立即用当前主题渲染
+      setCurrentSource(d.title || filename)
+      if (d.markdown) setMarkdown(d.markdown)
+      if (d.html && d.html.trim()) {
+        // 有保存的 HTML：优先展示（与草稿预览一致，避免 wewrite 重新转换导致变样）
+        setRecentHtml(d.html); setHtml(d.html)
+        showToast('success', `已加载草稿: ${d.title}`)
+      } else if (d.markdown) {
+        // 仅 markdown：用当前主题重新转换
         const result = await renderWithTheme(d.markdown, theme)
         if (result) { setRecentHtml(result); setHtml(result) }
         showToast('success', `已加载草稿: ${d.title}`)
       } else {
-        // 无 markdown，只有 html，直接展示
-        setRecentHtml(d.html || '')
-        setHtml(d.html || '')
-        setCurrentSource(d.title || filename)
-        showToast('info', '该草稿只有 HTML，按原排版展示')
+        showToast('info', '该草稿无内容')
       }
     } catch (e) { showToast('error', `加载失败: ${e.message}`) }
   }
@@ -106,7 +106,7 @@ export default function ConvertView() {
           <span className="muted">{currentSource}</span>
         </div>
         {recentHtml ? (
-          <div className="preview" dangerouslySetInnerHTML={{ __html: sanitizePreviewHtml(recentHtml) }} />
+          <div className="preview" dangerouslySetInnerHTML={{ __html: sanitizePreviewHtml(recentHtml, { widen: false }) }} />
         ) : (
           <div className="news-empty">
             {markdown ? '请选择左侧草稿或切换主题生成排版' : '请从左侧选择一篇草稿，或用 AI 写作生成文章'}
