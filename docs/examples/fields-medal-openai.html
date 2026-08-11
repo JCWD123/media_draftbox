@@ -1,0 +1,159 @@
+
+<header style="padding:0 0 16px;border-bottom:1px solid #e6ebf3;font-size:13px;letter-spacing:.14em;color:#596273;"><div style="font-weight:700;color:#172033;">学长十一的随笔</div><div style="float:right;font-size:12px;color:#8b94a4;letter-spacing:.08em;">2026 · 08</div></header>
+<section style="padding:32px 0 18px;">
+<div style="display:block;margin:0 0 12px;font-size:13px;font-weight:700;letter-spacing:.14em;color:#2457d6;">—  AI × 数学研究</div>
+<h1 style="margin:0 0 16px;font-size:30px;line-height:1.45;font-weight:700;color:#172033;font-family:Songti SC,STSong,serif;">别再拿菲尔兹奖营销了：OpenAI这次真正可怕的，是把数学证明做成了“可验算的流水线”</h1>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;margin:0;font-size:16px;line-height:1.9;color:#596274;text-align:left;">249页原稿、10项前沿结果、约2000美元的成功解法Token、10份Lean证书。真正值得普通AI用户关心的，不是AI“像不像天才”，而是它开始把新知识连同验收单一起交付。</p>
+<div style="margin:24px 0 14px;padding:26px 24px;border:1px solid #dfe7f6;border-radius:16px;background:#f4f7fd;">
+<p data-poster-kicker="" style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;margin:0 0 8px;font-size:12px;line-height:1.6;font-weight:700;letter-spacing:.12em;color:#2457d6;text-align:left;">THE IMPORTANT PART IS NOT THE MEDAL</p>
+<p data-poster-title="" style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;margin:0;font-size:25px;line-height:1.55;font-weight:700;color:#172033;text-align:left;font-family:Songti SC,STSong,serif;">不是“AI要拿菲尔兹奖”<br>而是数学第一次有了<br><strong style="font-weight:700;color:#111827;color:#2457d6;">可规模化的验收单</strong></p>
+<p data-poster-pills="" style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;margin:18px 0 0;font-size:0;line-height:1.8;text-align:left;">
+<span style="display:inline-block;margin:0 6px 6px 0;padding:6px 10px;border:1px solid #dbe4f5;border-radius:999px;background:#ffffff;font-size:12px;line-height:1.4;font-weight:700;color:#172033;">10 项研究结果</span>
+<span style="display:inline-block;margin:0 6px 6px 0;padding:6px 10px;border:1px solid #dbe4f5;border-radius:999px;background:#ffffff;font-size:12px;line-height:1.4;font-weight:700;color:#172033;">249 页原稿</span>
+<span style="display:inline-block;margin:0 6px 6px 0;padding:6px 10px;border:1px solid #dbe4f5;border-radius:999px;background:#ffffff;font-size:12px;line-height:1.4;font-weight:700;color:#172033;">≈ $2,000 Token*</span>
+<span style="display:inline-block;margin:0 6px 6px 0;padding:6px 10px;border:1px solid #dbe4f5;border-radius:999px;background:#ffffff;font-size:12px;line-height:1.4;font-weight:700;color:#172033;">Lean 4 证书</span>
+</p>
+</div>
+<div style="margin:0 0 34px;font-size:11px;line-height:1.7;color:#98a0ad;text-align:center;letter-spacing:.04em;">* OpenAI指“找到这些解法所需Token”按Sol API价格折算约2000美元，并非整个研究项目的总成本。</div>
+</section>
+<section style="margin:28px 0 42px;padding:22px 20px;border:1px solid #e6ebf3;border-radius:14px;background:#ffffff;">
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">我先承认：<strong style="font-weight:700;color:#111827;">这篇文章大概率没有“免费薅GPT”“省Token教程”“一键做短剧”好看。</strong></p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">数学天然不适合公众号。没有立刻能抄走的提示词，没有今晚就能部署的项目，也没有“普通人月入10万”的爽点。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">所以国内很多报道最省事的办法，就是把“菲尔兹奖”四个字搬出来——AI又把数学家干掉了，AI又要抢奖了。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">但我觉得，那反而把这件事真正有意思的部分遮住了。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;font-weight:700;color:#2457d6;">这一次真正值得盯住的，不是AI会不会拿奖，而是OpenAI第一次把“发现—写证明—机器验收”摆成了一条完整链路。</p>
+</section>
+<section style="margin:46px 0 0;">
+<section style="margin:0 0 20px;padding:0;"><span style="display:inline-block;width:38px;height:38px;line-height:38px;text-align:center;border-radius:50%;background:#2457d6;color:#ffffff;font-size:13px;font-weight:700;vertical-align:top;margin-right:12px;">01</span><span style="display:inline-block;max-width:650px;vertical-align:top;font-size:24px;line-height:1.55;font-weight:700;color:#172033;font-family:Songti SC,STSong,serif;">先别管数学：普通人最该看懂的，其实是三个数字</span></section>
+<div style="margin:22px 0 28px;">
+<div style="display:block;margin:0 0 10px;padding:16px;border:1px solid #e3e8f1;background:#fbfcff;border-radius:12px;"><b style="display:block;margin-bottom:6px;font-size:28px;line-height:1.2;font-weight:700;color:#2457d6;">10</b><span style="font-size:12px;line-height:1.7;color:#7c8594;">横跨数学与理论计算机科学的十项新结果</span></div>
+<div style="display:block;margin:0 0 10px;padding:16px;border:1px solid #e3e8f1;background:#fbfcff;border-radius:12px;"><b style="display:block;margin-bottom:6px;font-size:28px;line-height:1.2;font-weight:700;color:#2457d6;">249</b><span style="font-size:12px;line-height:1.7;color:#7c8594;">8月1日发布的原始手稿页数；8月6日更新版为253页</span></div>
+<div style="display:block;margin:0 0 10px;padding:16px;border:1px solid #e3e8f1;background:#fbfcff;border-radius:12px;"><b style="display:block;margin-bottom:6px;font-size:28px;line-height:1.2;font-weight:700;color:#2457d6;">≈ $2K</b><span style="font-size:12px;line-height:1.7;color:#7c8594;">OpenAI称“找到这些解法”的Token按Sol API价折算成本</span></div>
+</div>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">8月1日，OpenAI公开了一份很不“产品发布会”的东西：没有跑分表，没有摄影样片，没有新的聊天界面，而是一整套数学与理论计算机科学成果。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">十项结果来自其下一代模型家族Astra的一个内部版本，覆盖高维球堆积、编码理论、群论、算术电路复杂度、量子复杂性、格密码和极值组合等方向。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">里面有三项尤其适合大众理解：多色Ramsey数解决了Erdős问题183；极值图论部分解决了Erdős问题146与180。</p>
+<div style="margin:24px 0 28px;padding:20px 22px;border-left:4px solid #2457d6;background:#f6f8fc;border-radius:0 12px 12px 0;font-size:19px;line-height:1.8;font-weight:700;color:#202a3d;font-family:Songti SC,STSong,serif;">最容易被忽略的一句，是OpenAI写在公告里的成本描述：找到这些解法所需的Token，如果按Sol API价格折算，大约2000美元。</div>
+<div style="margin:18px 0 26px;padding:14px 16px;border:1px solid #f2ddbf;background:#fff8ee;border-radius:10px;font-size:13px;line-height:1.8;color:#805221;">注意：这不等于“花2000美元就能买10个数学突破”。它不是训练成本、人工成本、失败实验成本和研发成本的总和。准确的说法只是：OpenAI称，产生这些成功解法所需的Token，按Sol API价格折算约2000美元。</div>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">但即使加上这个限定，它仍然是一个很值得咀嚼的信号。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">因为我们以前谈AI成本，通常是在算：写一段代码多少钱，生成一张图多少钱，客服一次对话多少钱。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">现在，同一套“Token经济学”，第一次被摆到了<strong style="font-weight:700;color:#111827;">前沿知识生产</strong>的桌子上。</p>
+</section>
+<section style="margin:46px 0 0;">
+<section style="margin:0 0 20px;padding:0;"><span style="display:inline-block;width:38px;height:38px;line-height:38px;text-align:center;border-radius:50%;background:#2457d6;color:#ffffff;font-size:13px;font-weight:700;vertical-align:top;margin-right:12px;">02</span><span style="display:inline-block;max-width:650px;vertical-align:top;font-size:24px;line-height:1.55;font-weight:700;color:#172033;font-family:Songti SC,STSong,serif;">这10项到底是什么？你不需要全看懂</span></section>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">如果把论文目录原样贴出来，大多数人看到第三个名词就会退出。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">所以我们只做一件事：看看Astra这次碰的，究竟是不是“奥数题升级版”。</p>
+<div style="margin:22px 0 28px;">
+<div style="display:block;margin:0 0 9px;padding:15px 16px;border:1px solid #e3e8f1;background:#fbfcff;border-radius:12px;font-size:13px;line-height:1.6;color:#7a8495;"><b style="display:block;margin-bottom:5px;font-size:14px;font-weight:700;color:#1d2b48;">01 高维球堆积</b><i style="font-style:normal;color:#7a8495;">把高维空间里的“球到底能塞多密”继续往前推。</i></div>
+<div style="display:block;margin:0 0 9px;padding:15px 16px;border:1px solid #e3e8f1;background:#fbfcff;border-radius:12px;font-size:13px;line-height:1.6;color:#7a8495;"><b style="display:block;margin-bottom:5px;font-size:14px;font-weight:700;color:#1d2b48;">02 二进制与球面编码</b><i style="font-style:normal;color:#7a8495;">改进信息编码可达到的理论边界。</i></div>
+<div style="display:block;margin:0 0 9px;padding:15px 16px;border:1px solid #e3e8f1;background:#fbfcff;border-radius:12px;font-size:13px;line-height:1.6;color:#7a8495;"><b style="display:block;margin-bottom:5px;font-size:14px;font-weight:700;color:#1d2b48;">03 非sofic群</b><i style="font-style:normal;color:#7a8495;">构造非sofic群，触及群论长期问题。</i></div>
+<div style="display:block;margin:0 0 9px;padding:15px 16px;border:1px solid #e3e8f1;background:#fbfcff;border-radius:12px;font-size:13px;line-height:1.6;color:#7a8495;"><b style="display:block;margin-bottom:5px;font-size:14px;font-weight:700;color:#1d2b48;">04 Connes刚性猜想</b><i style="font-style:normal;color:#7a8495;">给出反例，推翻一个长期猜想。</i></div>
+<div style="display:block;margin:0 0 9px;padding:15px 16px;border:1px solid #e3e8f1;background:#fbfcff;border-radius:12px;font-size:13px;line-height:1.6;color:#7a8495;"><b style="display:block;margin-bottom:5px;font-size:14px;font-weight:700;color:#1d2b48;">05 算术电路复杂度</b><i style="font-style:normal;color:#7a8495;">改进permanent计算的下界。</i></div>
+<div style="display:block;margin:0 0 9px;padding:15px 16px;border:1px solid #e3e8f1;background:#fbfcff;border-radius:12px;font-size:13px;line-height:1.6;color:#7a8495;"><b style="display:block;margin-bottom:5px;font-size:14px;font-weight:700;color:#1d2b48;">06 量子并行重复</b><i style="font-style:normal;color:#7a8495;">证明一般双人量子游戏的指数重复定理。</i></div>
+<div style="display:block;margin:0 0 9px;padding:15px 16px;border:1px solid #e3e8f1;background:#fbfcff;border-radius:12px;font-size:13px;line-height:1.6;color:#7a8495;"><b style="display:block;margin-bottom:5px;font-size:14px;font-weight:700;color:#1d2b48;">07 最近向量问题</b><i style="font-style:normal;color:#7a8495;">给出新的近似困难性结果，与格密码相关。</i></div>
+<div style="display:block;margin:0 0 9px;padding:15px 16px;border:1px solid #e3e8f1;background:#fbfcff;border-radius:12px;font-size:13px;line-height:1.6;color:#7a8495;"><b style="display:block;margin-bottom:5px;font-size:14px;font-weight:700;color:#1d2b48;">08 Ehrhart体积猜想</b><i style="font-style:normal;color:#7a8495;">确定每个维度中的尖锐体积上界。</i></div>
+<div style="display:block;margin:0 0 9px;padding:15px 16px;border:1px solid #e3e8f1;background:#fbfcff;border-radius:12px;font-size:13px;line-height:1.6;color:#7a8495;"><b style="display:block;margin-bottom:5px;font-size:14px;font-weight:700;color:#1d2b48;">09 多色Ramsey数</b><i style="font-style:normal;color:#7a8495;">给出超指数下界，解决Erdős问题183。</i></div>
+<div style="display:block;margin:0 0 9px;padding:15px 16px;border:1px solid #e3e8f1;background:#fbfcff;border-radius:12px;font-size:13px;line-height:1.6;color:#7a8495;"><b style="display:block;margin-bottom:5px;font-size:14px;font-weight:700;color:#1d2b48;">10 极值数猜想</b><i style="font-style:normal;color:#7a8495;">解决Erdős问题146与180。</i></div>
+</div>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">你不用理解这些名词。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">你只需要知道：这不是“AI参加考试拿了满分”，而是<strong style="font-weight:700;color:#111827;">模型被放进知识前沿，去碰原本没有标准答案的问题。</strong></p>
+</section>
+<section style="margin:46px 0 0;">
+<section style="margin:0 0 20px;padding:0;"><span style="display:inline-block;width:38px;height:38px;line-height:38px;text-align:center;border-radius:50%;background:#2457d6;color:#ffffff;font-size:13px;font-weight:700;vertical-align:top;margin-right:12px;">03</span><span style="display:inline-block;max-width:650px;vertical-align:top;font-size:24px;line-height:1.55;font-weight:700;color:#172033;font-family:Songti SC,STSong,serif;">真正重磅的不是“答案”，而是OpenAI给每个答案都配了一张验收单</span></section>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">大模型做数学一直有一个致命问题：<strong style="font-weight:700;color:#111827;">它太会把错误写得像真的。</strong></p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">自然语言证明越长，人越难逐行检查。一个看起来漂亮的推导，中间只要偷换一次条件，整栋楼都可能是歪的。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">这也是为什么这次的GitHub仓库 <strong style="font-weight:700;color:#111827;">openai/ten-proofs</strong> 比249页论文更值得看。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">里面不是宣传稿，而是十份用Lean 4写的形式化证明。</p>
+<div style="margin:24px 0;padding:22px 18px;border-radius:14px;background:#111a2b;color:#ffffff;">
+<div style="display:block;">
+<div style="display:block;margin:0 0 10px;padding:13px 12px;border:1px solid #2c3850;border-radius:10px;background:#182338;text-align:center;color:#ffffff;"><b style="display:block;margin-bottom:5px;font-size:14px;color:#ffffff;">自然语言证明</b><small style="font-size:11px;line-height:1.5;color:#aebbd4;">人类可读<br>但检查很费时间</small></div><div style="display:block;margin:0 0 10px;text-align:center;color:#78a0ff;font-size:20px;font-weight:700;">↓</div>
+<div style="display:block;margin:0 0 10px;padding:13px 12px;border:1px solid #2c3850;border-radius:10px;background:#182338;text-align:center;color:#ffffff;"><b style="display:block;margin-bottom:5px;font-size:14px;color:#ffffff;">Lean形式化</b><small style="font-size:11px;line-height:1.5;color:#aebbd4;">把定义与推理<br>翻译成机器语言</small></div><div style="display:block;margin:0 0 10px;text-align:center;color:#78a0ff;font-size:20px;font-weight:700;">↓</div>
+<div style="display:block;margin:0 0 10px;padding:13px 12px;border:1px solid #2c3850;border-radius:10px;background:#182338;text-align:center;color:#ffffff;"><b style="display:block;margin-bottom:5px;font-size:14px;color:#ffffff;">Kernel验收</b><small style="font-size:11px;line-height:1.5;color:#aebbd4;">逐步检查<br>能过就是能过</small></div>
+</div>
+<div style="margin-top:14px;font-size:12px;line-height:1.7;color:#b7c3d9;">这更像软件工程里的“代码 + 自动化测试”，而不是“作者说自己测试过了”。</div>
+</div>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">拿大白话说：</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">以前一篇数学论文摆在你面前，你最终还是得信任作者、审稿人和同行。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">现在，AI把一个额外的东西交出来了：<strong style="font-weight:700;color:#111827;">你可以在相同的软件环境里重新跑一遍，让证明助手自己查。</strong></p>
+<div style="margin:24px 0 28px;padding:20px 22px;border-left:4px solid #2457d6;background:#f6f8fc;border-radius:0 12px 12px 0;font-size:19px;line-height:1.8;font-weight:700;color:#202a3d;font-family:Songti SC,STSong,serif;">AI最值得关注的变化，不是它开始“像数学家一样说话”，而是它开始交付可以被独立机器检查的工作产品。</div>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">当然，这里必须踩一下刹车：Lean通过，证明的是“形式化后的命题可以由这些前提推出”。至于形式化命题是否准确表达了原始数学问题，仍然需要数学家审阅。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">但这已经比“相信模型没幻觉”前进了非常大的一步。</p>
+</section>
+<section style="margin:46px 0 0;">
+<section style="margin:0 0 20px;padding:0;"><span style="display:inline-block;width:38px;height:38px;line-height:38px;text-align:center;border-radius:50%;background:#2457d6;color:#ffffff;font-size:13px;font-weight:700;vertical-align:top;margin-right:12px;">04</span><span style="display:inline-block;max-width:650px;vertical-align:top;font-size:24px;line-height:1.55;font-weight:700;color:#172033;font-family:Songti SC,STSong,serif;">数学看不懂没关系，我们只玩一个6个人的小游戏</span></section>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">十项结果里，我最想拿出来讲的，是Erdős问题183。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">不是因为它最“高大上”，而是因为它的起点，小学生都能理解。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">想象有6个人。任意两个人之间只有两种关系：朋友，或者陌生人。我们把朋友连成蓝线，陌生人连成红线。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;"><strong style="font-weight:700;color:#111827;">无论你怎么连，总能找到三个人，他们两两全是朋友，或者两两全是陌生人。</strong></p>
+<section data-wechat-placeholder="ramsey" style="margin:24px 0;padding:20px;border:1px solid #dfe7f6;border-radius:14px;background:#f5f8fe;text-align:center;">
+<p style="margin:0 0 8px;font-size:16px;line-height:1.7;font-weight:700;color:#172033;text-align:center;"><strong style="font-weight:700;color:#111827;">这里插入：Ramsey 6人随机涂色 GIF / 截图</strong></p>
+<p style="margin:0;font-size:12px;line-height:1.8;color:#7c8594;text-align:center;">建议录制 5–8 秒：连续点击“重新随机涂色”3次，每次自动加粗一个同色三角形。</p>
+</section>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">这就是Ramsey理论最迷人的地方：</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">表面上所有关系都可以乱涂，但当系统足够大时，<strong style="font-weight:700;color:#111827;">混乱里会被迫出现结构。</strong></p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">两种颜色时，“6个人”就够了。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">那如果不是两种颜色，而是 <strong style="font-weight:700;color:#111827;">k种颜色</strong> 呢？</p>
+</section>
+<section style="margin:46px 0 0;">
+<section style="margin:0 0 20px;padding:0;"><span style="display:inline-block;width:38px;height:38px;line-height:38px;text-align:center;border-radius:50%;background:#2457d6;color:#ffffff;font-size:13px;font-weight:700;vertical-align:top;margin-right:12px;">05</span><span style="display:inline-block;max-width:650px;vertical-align:top;font-size:24px;line-height:1.55;font-weight:700;color:#172033;font-family:Songti SC,STSong,serif;">从6个人到“宇宙爆炸”：Erdős真正问的是，颜色变多后这个数会长多快</span></section>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">把“朋友/陌生人”推广成k种颜色。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">我们要找的，是一个最小人数：只要人数达到它，不管你如何用k种颜色给所有连线涂色，都必然出现一个同色三角形。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">这个数叫多色三角Ramsey数，记作 <strong style="font-weight:700;color:#111827;">R<sub>k</sub>(3)</strong>。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">过去已知的下界大致还是“固定底数的指数增长”。真正悬着的问题是：</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;"><strong style="font-weight:700;color:#111827;">它会不会比任何固定底数的指数函数长得都快？</strong></p>
+<div style="margin:22px 0;padding:20px;border:1px solid #e0e6f0;border-radius:14px;background:#f3f6fb;text-align:center;font-size:21px;line-height:1.7;color:#16233e;font-family:Georgia,Times New Roman,serif;">R<sub>k</sub>(3) ≥ [ c · k<sup>1/3</sup> / log k ]<sup>k</sup><small style="display:block;margin-top:8px;font-size:11px;line-height:1.7;color:#7c8595;font-family:PingFang SC,Microsoft YaHei,Arial,sans-serif;">c 为某个绝对正常数；这是OpenAI当前更新版手稿给出的表述。</small></div>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">看不懂公式也完全没关系。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">只看中括号里面：随着k变大，<strong style="font-weight:700;color:#111827;">底数自己也在变大</strong>，然后整个底数还要再做k次方。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">普通指数是 2<sup>k</sup>、10<sup>k</sup>——底数固定。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">这里却像“底数也踩着油门，指数还同时踩着油门”。</p>
+<div style="margin:24px 0 28px;padding:20px 22px;border-left:4px solid #2457d6;background:#f6f8fc;border-radius:0 12px 12px 0;font-size:19px;line-height:1.8;font-weight:700;color:#202a3d;font-family:Songti SC,STSong,serif;">所以它的k次方根不会停在某个常数，而会一路趋向无穷。这就是“超指数”最直观的意思。</div>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">OpenAI公布的当前Lean文件 <strong style="font-weight:700;color:#111827;">MulticolorTriangleRamsey.lean</strong> 有3053行、约123KB。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">123KB当然不能告诉普通人证明为什么漂亮，但它提供了另一种价值：这不是“AI声称自己证出来了”，而是一份可以拿去重新构建和检查的形式化证书。</p>
+</section>
+<section style="margin:46px 0 0;">
+<section style="margin:0 0 20px;padding:0;"><span style="display:inline-block;width:38px;height:38px;line-height:38px;text-align:center;border-radius:50%;background:#2457d6;color:#ffffff;font-size:13px;font-weight:700;vertical-align:top;margin-right:12px;">06</span><span style="display:inline-block;max-width:650px;vertical-align:top;font-size:24px;line-height:1.55;font-weight:700;color:#172033;font-family:Songti SC,STSong,serif;">所以，AI是不是已经“配拿菲尔兹奖”了？这个问题其实问歪了</span></section>
+<div style="margin:22px 0 26px;display:block;">
+<div style="display:block;margin:0 0 10px;padding:18px;border:1px solid #f2d9d3;border-radius:12px;background:#fff5f3;"><h3 style="margin:0 0 8px;font-size:15px;line-height:1.6;font-weight:700;color:#172033;">更容易传播的问题</h3><p style="margin:0;font-size:13px;line-height:1.8;color:#586173;text-align:left;">AI是不是超过数学家了？<br>这够不够菲尔兹奖？<br>人类数学家是不是失业了？</p></div>
+<div style="display:block;margin:0 0 10px;padding:18px;border:1px solid #d8e4ff;border-radius:12px;background:#eff5ff;"><h3 style="margin:0 0 8px;font-size:15px;line-height:1.6;font-weight:700;color:#172033;">真正值得追的问题</h3><p style="margin:0;font-size:13px;line-height:1.8;color:#586173;text-align:left;">研究产出能不能规模化？<br>验证成本能不能大幅下降？<br>机器能否持续产生可审计的新知识？</p></div>
+</div>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">“菲尔兹奖”当然是很好的流量按钮。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">但把十项成果简单换算成“相当于几个菲尔兹奖”，本质上是传播学，不是数学判断。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">不同问题的分量不一样；一个Erdős问题的编号，也不自动等于“顶刊级成果”。数学界仍然需要判断新颖性、意义、形式化是否忠实，以及这些方法能否产生后续研究。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">而且OpenAI自己在公告里也把态度写得很克制：它希望数学共同体深入审阅这些结果，并明确承担手稿与Lean形式化的正确性责任。</p>
+<div style="margin:24px 0 28px;padding:20px 22px;border-left:4px solid #2457d6;background:#f6f8fc;border-radius:0 12px 12px 0;font-size:19px;line-height:1.8;font-weight:700;color:#202a3d;font-family:Songti SC,STSong,serif;">真正变化的不是“AI也有资格进天才排行榜”，而是科学研究开始出现一种以前没有过的工程形态：答案可以生成，证明可以形式化，验收可以自动化。</div>
+</section>
+<section style="margin:46px 0 0;">
+<section style="margin:0 0 20px;padding:0;"><span style="display:inline-block;width:38px;height:38px;line-height:38px;text-align:center;border-radius:50%;background:#2457d6;color:#ffffff;font-size:13px;font-weight:700;vertical-align:top;margin-right:12px;">07</span><span style="display:inline-block;max-width:650px;vertical-align:top;font-size:24px;line-height:1.55;font-weight:700;color:#172033;font-family:Songti SC,STSong,serif;">一个不做数学的普通人，为什么应该关心这件事？</span></section>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">如果你既不是数学家，也不准备研究Ramsey数，我觉得这件事仍然有三个很现实的含义。</p>
+<div style="margin:22px 0 26px;display:block;">
+<div style="display:block;margin:0 0 10px;padding:16px 18px;border:1px solid #dce4f5;border-radius:12px;background:#fbfdff;"><div style="display:inline-block;width:28px;height:28px;line-height:28px;text-align:center;border-radius:50%;background:#2457d6;color:#ffffff;font-size:13px;font-weight:700;margin-right:8px;">1</div><div><b style="font-size:15px;font-weight:700;color:#172033;">AI的价值正在从“生产内容”，继续往“生产知识”迁移</b><span style="display:block;margin:10px 0 0 36px;font-size:13px;line-height:1.75;color:#6c7686;">写文案、写代码、画图，是在已知空间里组合；前沿研究的门槛，是能不能真的推进一个原本没有答案的问题。</span></div></div>
+<div style="display:block;margin:0 0 10px;padding:16px 18px;border:1px solid #dce4f5;border-radius:12px;background:#fbfdff;"><div style="display:inline-block;width:28px;height:28px;line-height:28px;text-align:center;border-radius:50%;background:#2457d6;color:#ffffff;font-size:13px;font-weight:700;margin-right:8px;">2</div><div><b style="font-size:15px;font-weight:700;color:#172033;">未来最贵的不是生成，而是“怎么验收”</b><span style="display:block;margin:10px 0 0 36px;font-size:13px;line-height:1.75;color:#6c7686;">代码有测试，数学有Lean。医疗、法律、工程领域真正能规模化的AI，也一定需要各自的可验证机制。</span></div></div>
+<div style="display:block;margin:0 0 10px;padding:16px 18px;border:1px solid #dce4f5;border-radius:12px;background:#fbfdff;"><div style="display:inline-block;width:28px;height:28px;line-height:28px;text-align:center;border-radius:50%;background:#2457d6;color:#ffffff;font-size:13px;font-weight:700;margin-right:8px;">3</div><div><b style="font-size:15px;font-weight:700;color:#172033;">人的价值会越来越往“定义问题”移动</b><span style="display:block;margin:10px 0 0 36px;font-size:13px;line-height:1.75;color:#6c7686;">当机器越来越擅长推导，稀缺的会变成：什么问题值得算、什么约束不能丢、什么结果真的有意义。</span></div></div>
+</div>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">这可能也是这条新闻最值得普通开发者留意的地方。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">今天我们还在比较模型写代码谁快10%，Token谁便宜20%。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#253047;text-align:justify;letter-spacing:.02em;">但更远一点看，真正拉开差距的也许不是“谁能多吐一万行代码”，而是<strong style="font-weight:700;color:#111827;">谁能把一个模糊问题变成可验证的任务，再让模型持续交付。</strong></p>
+</section>
+<section style="margin:54px 0 0;padding:28px 24px;border-radius:16px;background:#121a2b;color:#f7f9ff;">
+<h2 style="margin:0 0 18px;font-size:24px;line-height:1.5;font-weight:700;color:#ffffff;font-family:Songti SC,STSong,serif;">结语：最重要的不是AI证明了什么，而是“正确”开始被产品化</h2>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#dbe2ef;text-align:justify;">过去我们担心大模型最大的理由，是它会一本正经地胡说八道。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#dbe2ef;text-align:justify;">所以这次OpenAI真正有分量的一张牌，不是“我们模型很聪明”。</p>
+<div style="margin:22px 0;padding:18px 20px;border-left:4px solid #79a2ff;background:#1d2940;border-radius:0 12px 12px 0;font-size:19px;line-height:1.8;font-weight:700;color:#ffffff;font-family:Songti SC,STSong,serif;">而是：我把证明给你，把机器证书也给你。你不必相信我，你可以自己验。</div>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#dbe2ef;text-align:justify;">这让我想到一个可能比“AI会不会替代数学家”更重要的问题：</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#dbe2ef;text-align:justify;">如果未来越来越多领域都能建立这种机器可验收的闭环，那么AI真正进入产业和科研深水区的标志，或许根本不是模型又涨了多少分。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#dbe2ef;text-align:justify;">而是它开始学会<strong style="color:#fff;font-weight:700;color:#111827;">连同“为什么它是对的”一起交付。</strong></p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#dbe2ef;text-align:justify;">到那时，最稀缺的能力也许不是写出答案。</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:2;color:#dbe2ef;text-align:justify;">而是提出一个值得回答的问题，并准确地定义——<strong style="color:#fff;font-weight:700;color:#111827;">什么才算答对。</strong></p>
+<div style="margin-top:30px;text-align:right;font-size:14px;letter-spacing:.12em;color:#cbd5e4;font-family:Songti SC,STSong,serif;">— 学长十一</div>
+</section>
+<section style="margin-top:38px;padding-top:20px;border-top:1px solid #e6ebf3;">
+<h3 style="margin:0 0 10px;font-size:13px;font-weight:700;color:#172033;">资料与事实校对</h3>
+<ol>
+<li style="margin-bottom:6px;font-size:11px;line-height:1.8;color:#7d8796;"><a href="https://openai.com/index/ten-advances-in-mathematics/" style="color:#516dba;text-decoration:none;" target="_blank">OpenAI｜Ten advances in mathematics and theoretical computer science</a>（2026-08-01）</li>
+<li style="margin-bottom:6px;font-size:11px;line-height:1.8;color:#7d8796;"><a href="https://cdn.openai.com/pdf/ten-proofs-oai-original.pdf" style="color:#516dba;text-decoration:none;" target="_blank">OpenAI｜原始249页手稿</a>；8月6日更新后的版本为253页。</li>
+<li style="margin-bottom:6px;font-size:11px;line-height:1.8;color:#7d8796;"><a href="https://github.com/openai/ten-proofs" style="color:#516dba;text-decoration:none;" target="_blank">GitHub｜openai/ten-proofs</a>，十项结果的Lean 4形式化与独立检查说明。</li>
+<li style="margin-bottom:6px;font-size:11px;line-height:1.8;color:#7d8796;"><a href="https://www.erdosproblems.com/183" style="color:#516dba;text-decoration:none;" target="_blank">Erdős Problems #183</a>，多色三角Ramsey数问题背景。</li>
+<li style="margin-bottom:6px;font-size:11px;line-height:1.8;color:#7d8796;"><a href="https://github.com/teorth/erdosproblems/wiki/Disclaimers-and-caveats" style="color:#516dba;text-decoration:none;" target="_blank">Erdős Problems Wiki｜Disclaimers and caveats</a>：Lean通过与“形式化是否忠实表达原问题”是两个层面的验证。</li>
+</ol>
+</section>
+<footer style="margin-top:30px;font-size:11px;line-height:1.8;color:#929baa;text-align:center;">学长十一的随笔｜写给仍然愿意把一个问题想深一点的人</footer>
