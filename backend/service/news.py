@@ -1,6 +1,7 @@
 """
 新闻服务 - 调用 VPS API + 备用 RSS 源
 """
+import hashlib
 import requests
 import feedparser
 from typing import List, Dict
@@ -41,6 +42,14 @@ def get_categories():
     ]}
 
 
+def _item_id(url: str) -> str:
+    """新闻稳定 id：URL 的短 hash（同一链接跨请求稳定，供前端勾选/后端回查）"""
+    if not url:
+        import random
+        return f"n{random.randint(100000, 999999)}"
+    return hashlib.md5(url.encode("utf-8")).hexdigest()[:8]
+
+
 def get_news_list(category: str, page: int, page_size: int):
     """获取新闻列表"""
     # 尝试 VPS API
@@ -54,10 +63,12 @@ def get_news_list(category: str, page: int, page_size: int):
         if data.get("news"):
             news = []
             for item in data.get("news", []):
+                url = item.get("url", "")
                 news.append({
+                    "id": _item_id(url),
                     "title": item.get("title", ""),
                     "summary": "",
-                    "link": item.get("url", ""),
+                    "link": url,
                     "published": item.get("news_date", "")[:10],
                     "source": item.get("source_name", ""),
                     "category": item.get("category", ""),
@@ -73,10 +84,12 @@ def get_news_list(category: str, page: int, page_size: int):
         for source in rss_sources:
             feed = feedparser.parse(source)
             for entry in feed.entries[:page_size]:
+                url = entry.get("link", "")
                 news.append({
+                    "id": _item_id(url),
                     "title": entry.get("title", ""),
                     "summary": entry.get("summary", "")[:200],
-                    "link": entry.get("link", ""),
+                    "link": url,
                     "published": entry.get("published", "")[:10],
                     "source": feed.feed.get("title", "RSS"),
                     "category": category,
@@ -86,3 +99,22 @@ def get_news_list(category: str, page: int, page_size: int):
         pass
 
     return {"news": [], "category": category, "total": 0, "error": "VPS 和 RSS 源均不可用"}
+
+
+def fetch_news_by_ids(ids: List[str], limit: int = 100) -> List[Dict]:
+    """按 id 回查新闻（拉全部分类最近新闻构建映射）"""
+    if not ids:
+        return []
+    # 拉全部分类最近新闻构建 id → item 映射
+    categories = ["FINANCE", "TECH", "SOCIAL", "DEVELOPER", "VIDEO", "COMMUNITY", "KNOWLEDGE"]
+    id_map = {}
+    for cat in categories:
+        try:
+            result = get_news_list(cat, 1, 20)
+            for item in result.get("news", []):
+                id_map[item["id"]] = item
+        except Exception:
+            continue
+        if len(id_map) >= limit * 2:
+            break
+    return [id_map[i] for i in ids if i in id_map]

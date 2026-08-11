@@ -5,3 +5,10 @@ __pycache__/
 *.pyc
 .env
 .DS_Store
+# 测试运行时产生的临时文件
+tests/_tasks_test*.json
+tests/media/
+backend/media/
+# 生成器产生的媒体文件
+~/.draftbox/media/
+

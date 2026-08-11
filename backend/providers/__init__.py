@@ -92,8 +92,11 @@ class ProviderRegistry:
         """使用当前提供商聊天"""
         provider = self.get_current()
         if not provider:
-            raise ValueError("未设置模型提供商")
-        return provider.chat(messages, model=self.current_model, **kwargs)
+            raise ValueError("未设置模型提供商，请先运行 draftbox model 配置")
+        # 调用方显式传 model 时优先，否则用当前配置的 model
+        if "model" not in kwargs:
+            kwargs["model"] = self.current_model
+        return provider.chat(messages, **kwargs)
 
     def list_providers(self) -> List[Dict]:
         """列出所有提供商"""
@@ -101,3 +104,66 @@ class ProviderRegistry:
             {"name": p.name, "current": p.name == self.current_provider}
             for p in self.providers.values()
         ]
+
+
+# ---------------------------------------------------------------
+# 三套 Provider 全局注册（LLM + 图片 + 视频）
+# 由 main.py 启动时调用 init_registry()，service 层通过 get_* 获取
+# ---------------------------------------------------------------
+
+_llm: Optional[ProviderRegistry] = None
+_image: Optional["ImageProvider"] = None  # noqa: F821
+_video: Optional["VideoProvider"] = None  # noqa: F821
+
+
+def init_registry(cfg: Dict = None):
+    """初始化三套 Provider（配置优先用传入 dict，否则读 ~/.draftbox/config.yaml）"""
+    global _llm, _image, _video
+
+    if cfg is None:
+        from utils.config import load_config
+        cfg = load_config()
+
+    from providers.chat import MimoProvider, DeepSeekProvider, OpenAIChatProvider
+    from providers.image_gen import ARKSeedreamProvider, OpenAIImageProvider
+    from providers.video_gen import ARKSeedanceProvider
+
+    # --- LLM ---
+    _llm = ProviderRegistry()
+    model_cfg = cfg.get("model") or {}
+    for p in (MimoProvider(model_cfg), DeepSeekProvider(model_cfg), OpenAIChatProvider(model_cfg)):
+        _llm.register(p)
+    if model_cfg.get("provider") in _llm.providers:
+        _llm.set_current(model_cfg["provider"], model_cfg.get("model"))
+
+    # --- 图片 ---
+    img_cfg = cfg.get("image") or {}
+    _image = OpenAIImageProvider(img_cfg) if img_cfg.get("provider") == "openai" else ARKSeedreamProvider(img_cfg)
+
+    # --- 视频 ---
+    vid_cfg = cfg.get("video") or {}
+    _video = ARKSeedanceProvider(vid_cfg)
+
+
+def get_llm() -> Optional[ProviderRegistry]:
+    """获取 LLM 注册表（未初始化则自动初始化）"""
+    global _llm
+    if _llm is None:
+        init_registry()
+    return _llm
+
+
+def get_image():
+    """获取图片 Provider（未配置 key 时 generate 抛可读错误）"""
+    global _image
+    if _image is None:
+        init_registry()
+    return _image
+
+
+def get_video():
+    """获取视频 Provider（未配置 key 时 create_task 抛可读错误）"""
+    global _video
+    if _video is None:
+        init_registry()
+    return _video

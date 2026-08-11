@@ -49,8 +49,6 @@ export default function App() {
     { id: 'professional', name: '专业简洁' }, { id: 'minimal', name: '极简' },
     { id: 'github', name: 'GitHub风格' }, { id: 'newspaper', name: '报纸风格' }, { id: 'bold-navy', name: '深蓝粗体' },
   ])
-  const [aiTopic, setAiTopic] = useState('')
-  const [aiResult, setAiResult] = useState('')
   const [imgQuery, setImgQuery] = useState('')
   const [images, setImages] = useState(DEFAULT_IMAGES)
   const [drafts, setDrafts] = useState([])
@@ -60,6 +58,23 @@ export default function App() {
   const [newsCategories, setNewsCategories] = useState([])
   const [newsLoading, setNewsLoading] = useState(false)
 
+  // AI 写作状态
+  const [aiTopic, setAiTopic] = useState('')
+  const [aiResult, setAiResult] = useState('')
+  const [aiHtml, setAiHtml] = useState('')
+  const [aiTitle, setAiTitle] = useState('')
+  const [aiTags, setAiTags] = useState([])
+  const [aiVertical, setAiVertical] = useState('')
+  const [aiWarnings, setAiWarnings] = useState([])
+  const [aiLoading, setAiLoading] = useState(false)
+  const [withImages, setWithImages] = useState(true)
+  const [withVideo, setWithVideo] = useState(false)
+  const [aiNews, setAiNews] = useState([])
+  const [aiNewsCategory, setAiNewsCategory] = useState('TECH')
+  const [selectedNews, setSelectedNews] = useState(new Set())
+  const [aiDraftId, setAiDraftId] = useState('')
+  const [videoStatus, setVideoStatus] = useState('')
+
   useEffect(() => { setHtml(`<style>${WECHAT_CSS}</style><div>${md.render(markdown)}</div>`) }, [markdown])
   useEffect(() => { if (tab === 'drafts') fetch(`${API}/drafts`).then(r => r.json()).then(d => setDrafts(d.drafts || [])).catch(() => {}) }, [tab])
   useEffect(() => {
@@ -68,6 +83,7 @@ export default function App() {
       setNewsCategories(cats)
     }).catch(() => {})
   }, [])
+  useEffect(() => { if (tab === 'ai' && aiNews.length === 0) loadAiNews('TECH') }, [tab])
 
   const loadNews = async (cat) => {
     setNewsCategory(cat); setNewsLoading(true)
@@ -102,6 +118,75 @@ export default function App() {
     alert('已复制')
   }
 
+  // ---------- AI 写作 ----------
+  const loadAiNews = async (cat) => {
+    setAiNewsCategory(cat)
+    try {
+      const r = await fetch(`${API}/news/list`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ category: cat, page: 1, page_size: 20 }) })
+      const d = await r.json()
+      setAiNews(d.news || [])
+    } catch (e) { setAiNews([]) }
+  }
+
+  const toggleNews = (id) => {
+    const next = new Set(selectedNews)
+    if (next.has(id)) { next.delete(id) }
+    else {
+      if (next.size >= 10) { alert('最多选 10 条'); return }
+      next.add(id)
+    }
+    setSelectedNews(next)
+  }
+
+  const generateArticle = async () => {
+    if (!aiTopic.trim()) { alert('请输入话题/核心思路'); return }
+    setAiLoading(true); setAiResult(''); setAiHtml(''); setAiTags([]); setAiWarnings([]); setVideoStatus('')
+    try {
+      const r = await fetch(`${API}/write/generate`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: aiTopic, news_ids: [...selectedNews],
+          with_images: withImages, with_video: withVideo, max_images: 4, max_videos: 1
+        })
+      })
+      const d = await r.json()
+      if (!d.success) { setAiWarnings([d.error]); return }
+      setAiResult(d.content); setAiHtml(d.html); setAiTags(d.tags || []); setAiTitle(d.title || '')
+      setAiDraftId(d.draft_id)
+      if (d.vertical_check?.drifted) setAiVertical(`⚠ 垂直度已校准: ${d.vertical_check.note || ''}`)
+      else if (d.vertical_check?.domain) setAiVertical(`✓ 垂直领域: ${d.vertical_check.domain}`)
+      else setAiVertical('')
+      setAiWarnings(d.warnings || [])
+      if (d.video_pending) pollVideoStatus(d.draft_id)
+    } catch (e) { setAiWarnings(['生成失败: ' + e.message]) }
+    setAiLoading(false)
+  }
+
+  const pollVideoStatus = (draftId) => {
+    const timer = setInterval(async () => {
+      try {
+        const r = await fetch(`${API}/write/media-status?draft_id=${draftId}`)
+        const d = await r.json()
+        if (d.status === 'done') {
+          clearInterval(timer)
+          setVideoStatus('✅ 视频已生成')
+          if (d.html) setAiHtml(d.html)
+        } else if (d.status === 'failed') {
+          clearInterval(timer)
+          setVideoStatus('❌ 视频生成失败: ' + (d.error || ''))
+        } else {
+          setVideoStatus('⏳ 视频生成中（约 1-5 分钟）...')
+        }
+      } catch (e) { clearInterval(timer) }
+    }, 5000)
+  }
+
+  const saveAiDraft = async () => {
+    const title = aiTitle || aiTopic || 'AI生成文章'
+    await fetch(`${API}/drafts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, content: aiResult }) })
+    alert('已保存草稿: ' + title)
+  }
+
   const tabs = [
     { id: 'convert', label: '📝 排版转换' },
     { id: 'news', label: '🔥 热点新闻' },
@@ -114,7 +199,7 @@ export default function App() {
     <div className="app">
       <header className="header">
         <h1>📝 DraftBox</h1>
-        <span className="subtitle">会学习的 AI 写作助手</span>
+        <span className="subtitle">会学习的 AI 写作助手（文字 + 图片 + 视频）</span>
       </header>
       <nav className="nav">
         {tabs.map(t => (
@@ -147,7 +232,6 @@ export default function App() {
         {/* 热点新闻 - 仿VPS风格 */}
         {tab === 'news' && (
           <div className="news-layout">
-            {/* 左侧分类栏 */}
             <div className="news-sidebar">
               <h3>新闻分类</h3>
               {newsCategories.map(c => (
@@ -158,7 +242,6 @@ export default function App() {
                 </div>
               ))}
             </div>
-            {/* 右侧新闻列表 */}
             <div className="news-main">
               <div className="news-header">
                 <h2>{newsCategories.find(c => c.id === newsCategory)?.name || '热点新闻'}</h2>
@@ -186,15 +269,66 @@ export default function App() {
           </div>
         )}
 
-        {/* AI写作 */}
+        {/* AI写作 - 三模态（文字+图片+视频） */}
         {tab === 'ai' && (
           <div className="panel full">
-            <h2>🤖 AI 写作</h2>
+            <h2>🤖 AI 写作（文字 + 图片 + 视频）</h2>
             <div className="toolbar">
-              <input value={aiTopic} onChange={e => setAiTopic(e.target.value)} placeholder="输入话题..." />
-              <button onClick={() => setAiResult(`关于「${aiTopic}」的文章生成中...`)}>生成</button>
+              <input value={aiTopic} onChange={e => setAiTopic(e.target.value)} placeholder="输入话题/核心思路（必填）..." style={{ flex: 1 }} />
+              <button onClick={generateArticle} disabled={aiLoading}>{aiLoading ? '生成中...' : '🚀 生成'}</button>
             </div>
-            {aiResult && <div className="result">{aiResult}</div>}
+            <div className="toolbar">
+              <label className="media-opt"><input type="checkbox" checked={withImages} onChange={e => setWithImages(e.target.checked)} /> 生成配图（默认）</label>
+              <label className="media-opt"><input type="checkbox" checked={withVideo} onChange={e => setWithVideo(e.target.checked)} /> 生成视频（约1-5分钟）</label>
+              {videoStatus && <span className="video-status">{videoStatus}</span>}
+            </div>
+            {/* 新闻素材勾选 */}
+            <div className="news-select">
+              <div className="news-select-header">
+                <h3>📰 新闻素材勾选（可选，最多 10 条）</h3>
+                <div className="news-cat-tabs">
+                  {newsCategories.map(c => (
+                    <button key={c.id} className={`cat-tab ${aiNewsCategory === c.id ? 'active' : ''}`}
+                      onClick={() => loadAiNews(c.id)}>{c.name}</button>
+                  ))}
+                </div>
+                <span className="selected-count">已选 {selectedNews.size} 条
+                  {selectedNews.size > 0 && <button className="link-btn" onClick={() => setSelectedNews(new Set())}>清空</button>}
+                </span>
+              </div>
+              <div className="news-select-list">
+                {aiNews.map(item => (
+                  <label key={item.id} className="news-check-item">
+                    <input type="checkbox" checked={selectedNews.has(item.id)} onChange={() => toggleNews(item.id)} />
+                    <span className="news-check-title">{item.title}</span>
+                    <span className="news-check-source">{item.source}</span>
+                  </label>
+                ))}
+                {aiNews.length === 0 && <div className="news-empty">点击上方分类加载新闻</div>}
+              </div>
+            </div>
+            {/* 标签 + 垂直度 */}
+            {aiTags.length > 0 && (
+              <div className="tag-bar">
+                {aiTags.map(t => <span key={t} className="tag">#{t}</span>)}
+                {aiVertical && <span className="vertical-note">{aiVertical}</span>}
+              </div>
+            )}
+            {aiWarnings.length > 0 && (
+              <div className="warnings">
+                {aiWarnings.map((w, i) => <div key={i}>⚠ {w}</div>)}
+              </div>
+            )}
+            {/* 生成结果 */}
+            {aiResult && (
+              <div className="ai-result">
+                <div className="toolbar">
+                  <button onClick={() => { setMarkdown(aiResult); setTab('convert') }}>📐 转为排版</button>
+                  <button onClick={saveAiDraft}>💾 保存草稿</button>
+                </div>
+                <div className="preview" dangerouslySetInnerHTML={{ __html: aiHtml || md.render(aiResult) }} />
+              </div>
+            )}
           </div>
         )}
 

@@ -54,3 +54,29 @@ textarea { width: 100%; height: 500px; border: 1px solid #ddd; border-radius: 4p
 .news-source-badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 11px; color: #fff; font-weight: 500; }
 .news-date { font-size: 12px; color: #999; }
 .news-empty { text-align: center; padding: 40px; color: #999; }
+
+/* AI 写作 - 三模态 */
+.media-opt { display: flex; align-items: center; gap: 4px; font-size: 14px; color: #555; margin-right: 8px; cursor: pointer; }
+.media-opt input { width: auto; }
+.video-status { font-size: 13px; color: #1a73e8; align-self: center; }
+.news-select { border: 1px solid #eee; border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+.news-select-header { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #fafafa; border-bottom: 1px solid #eee; flex-wrap: wrap; }
+.news-select-header h3 { font-size: 14px; color: #555; margin: 0; }
+.news-cat-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+.cat-tab { padding: 4px 10px; border: 1px solid #ddd; border-radius: 12px; background: #fff; font-size: 12px; cursor: pointer; color: #666; }
+.cat-tab.active { background: #1a73e8; color: #fff; border-color: #1a73e8; }
+.selected-count { font-size: 13px; color: #999; margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.link-btn { background: none; border: none; color: #1a73e8; cursor: pointer; font-size: 13px; padding: 0; }
+.news-select-list { max-height: 240px; overflow-y: auto; }
+.news-check-item { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid #f5f5f5; cursor: pointer; font-size: 14px; }
+.news-check-item:hover { background: #f9f9f9; }
+.news-check-item input { width: auto; flex-shrink: 0; }
+.news-check-title { flex: 1; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.news-check-source { font-size: 12px; color: #999; flex-shrink: 0; }
+.tag-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; padding: 10px 14px; background: #f0f7ff; border-radius: 8px; }
+.tag { background: #1a73e8; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 13px; }
+.vertical-note { font-size: 13px; color: #666; margin-left: 8px; }
+.warnings { background: #fff8e6; border: 1px solid #f0d48a; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 13px; color: #8a6d1a; }
+.ai-result { margin-top: 8px; }
+.ai-result .toolbar button { background: #1557b0; }
+.ai-result .preview { height: 560px; }
