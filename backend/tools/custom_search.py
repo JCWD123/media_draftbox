@@ -27,17 +27,42 @@ def _item_id(url: str) -> str:
 
 
 def search_news(query: str, limit: int = 12, region: str = "cn-zh", language: str = "zh-cn") -> dict:
-    """按关键词搜索新闻（DuckDuckGo 实时搜索结果）
+    """按关键词搜索新闻
 
-    优先用 news()，失败降级 text()。返回 draftbox 标准新闻结构，
-    并把结果写入 SEARCH_CACHE 供回查。
+    优先：付费 Jina（s.jina.ai 搜索+正文一体，配置了 search.jina_key 时）
+    降级：ddgs（news() 失败退化 text()）
     """
-    if not DDGS_AVAILABLE:
-        return {"news": [], "total": 0, "error": "ddgs 未安装，请先 pip install ddgs"}
     if not query or not query.strip():
         return {"news": [], "total": 0, "error": "请提供搜索关键词"}
 
     query = query.strip()
+
+    # 1) 优先付费 Jina（搜索结果 + 完整正文，质量更高）
+    try:
+        from tools.jina_reader import jina_key_available, search_web as jina_search_web
+        if jina_key_available():
+            jr = jina_search_web(query, limit)
+            if not jr.get("error") and jr.get("news"):
+                # 写入 SEARCH_CACHE 供 fetch_news_by_ids 回查（勾选后 AI 写作能拿到正文）
+                for item in jr["news"]:
+                    nid = item["id"]
+                    with _CACHE_LOCK:
+                        SEARCH_CACHE[nid] = item
+                        while len(SEARCH_CACHE) > _CACHE_MAX:
+                            SEARCH_CACHE.pop(next(iter(SEARCH_CACHE)))
+                return jr
+    except Exception:
+        pass
+
+    # 2) 降级：ddgs
+    return _ddgs_search(query, limit, region, language)
+
+
+def _ddgs_search(query: str, limit: int, region: str, language: str) -> dict:
+    """ddgs 搜索（news() 优先，失败降级 text()）"""
+    if not DDGS_AVAILABLE:
+        return {"news": [], "total": 0, "error": "ddgs 未安装，请先 pip install ddgs"}
+
     results = None
     err_detail = ""
 
