@@ -102,7 +102,10 @@ def get_news_list(category: str, page: int, page_size: int):
 
 
 def fetch_news_by_ids(ids: List[str], limit: int = 100) -> List[Dict]:
-    """按 id 回查新闻（拉全部分类最近新闻构建映射 + 自定义搜索缓存）"""
+    """按 id 回查新闻（拉全部分类最近新闻构建映射 + 自定义搜索缓存）
+
+    对自定义搜索的新闻，尝试用 Jina Reader 抓取正文填入 summary（供 AI 提炼）。
+    """
     if not ids:
         return []
 
@@ -111,7 +114,7 @@ def fetch_news_by_ids(ids: List[str], limit: int = 100) -> List[Dict]:
         from tools.custom_search import get_from_cache
         found = get_from_cache(ids)
         if len(found) >= len(ids):
-            return found
+            return _enhance_with_body(found)
         # 缓存命中的去掉，剩下的走常规分类
         found_ids = {f["id"] for f in found}
         remaining = [i for i in ids if i not in found_ids]
@@ -119,7 +122,7 @@ def fetch_news_by_ids(ids: List[str], limit: int = 100) -> List[Dict]:
         found, remaining = [], list(ids)
 
     if not remaining:
-        return found
+        return _enhance_with_body(found)
 
     # 2) 拉全部分类最近新闻构建 id → item 映射
     categories = ["FINANCE", "TECH", "SOCIAL", "DEVELOPER", "VIDEO", "COMMUNITY", "KNOWLEDGE"]
@@ -134,4 +137,31 @@ def fetch_news_by_ids(ids: List[str], limit: int = 100) -> List[Dict]:
         if len(id_map) >= limit * 2:
             break
     found += [id_map[i] for i in remaining if i in id_map]
-    return found
+    return _enhance_with_body(found)
+
+
+def _enhance_with_body(items: List[Dict], max_body: int = 3) -> List[Dict]:
+    """对搜索结果新闻用 Jina Reader 抓正文填充 summary（限量防超时，失败降级标题+链接）"""
+    if not items:
+        return items
+    # 只对"自定义搜索/SEARCH"类且无 summary 的新闻抓正文，且最多抓 max_body 条
+    search_items = [i for i in items if i.get("category") == "SEARCH"]
+    to_fetch = search_items[:max_body]
+    if not to_fetch:
+        return items
+
+    try:
+        from tools.jina_reader import fetch_article
+        for item in to_fetch:
+            url = item.get("link")
+            if not url or item.get("summary"):
+                continue
+            try:
+                res = fetch_article(url)
+                if res.get("ok") and res.get("body"):
+                    item["summary"] = res["body"]
+            except Exception:
+                continue
+    except Exception:
+        pass
+    return items

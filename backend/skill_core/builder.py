@@ -24,7 +24,11 @@ def build_plan_prompt(
             title_ = item.get("title", "")
             link = item.get("link", "")
             source = item.get("source", "")
+            summary = (item.get("summary") or "").strip()
             lines.append(f"{i}. {title_}（来源: {source}）{link}")
+            # 若有正文/摘要（Jina Reader 抓取或 RSS 摘要），附带供提炼
+            if summary:
+                lines.append(f"   内容: {summary[:600]}")
         news_text = "\n".join(lines)
 
     upload_text = f"\n\n【上传的参考文档】\n{upload_content}\n" if upload_content else ""

@@ -65,3 +65,21 @@ def test_search_rejects_empty_query():
     d = search_news("  ", limit=3)
     assert "error" in d
     assert d.get("news") == []
+
+
+# ---- Jina Reader 正文增强 ----
+
+def test_enhance_skips_non_search_items():
+    """fetch_news_by_ids 对非 SEARCH 类新闻不抓正文（快路径）"""
+    from service.news import _enhance_with_body
+    items = [{"id": "x1", "title": "普通新闻", "link": "https://example.com", "category": "TECH"}]
+    result = _enhance_with_body(items)
+    # 不触发 Jina 抓取（非 SEARCH 类），保持原样
+    assert result == items
+
+
+def test_fetch_news_by_ids_returns_list():
+    """fetch_news_by_ids 对空 id 返回空列表（不报错）"""
+    from service.news import fetch_news_by_ids
+    assert fetch_news_by_ids([]) == []
+    assert fetch_news_by_ids(None) == []
