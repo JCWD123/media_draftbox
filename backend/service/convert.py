@@ -39,6 +39,9 @@ def convert_markdown(markdown: str, theme: str, video_cards: dict = None):
     video_cards: {1: {"path","cover","caption","link"}} —— markdown 中的 @VIDEO_CARD(1)
     标记会被渲染为样式化视频卡片（纯 inline style，无 <video> 标签，微信兼容）。
     """
+    if theme == "premium":
+        return convert_premium(markdown, video_cards)
+
     try:
         resolved = resolve_theme(theme)
     except ValueError as e:
@@ -107,12 +110,28 @@ def render_video_card(card: dict) -> str:
 
 def get_themes():
     """获取主题列表"""
+    # 精品排版主题 + wewrite 主题
+    premium_themes = [{"id": "premium", "name": "学长十一·精选"}]
     # 优先读项目内 wewrite 引擎的主题目录，其次读用户目录
     candidates = [
         Path(__file__).parent.parent.parent / "src" / "wewrite" / "src" / "wewrite" / "toolkit" / "themes",
         Path.home() / ".wewrite" / "themes",
     ]
+    wewrite_themes = []
     for themes_dir in candidates:
         if themes_dir.exists():
-            return {"themes": [{"id": f.stem, "name": f.stem} for f in sorted(themes_dir.glob("*.yaml"))]}
-    return {"themes": [{"id": t, "name": t} for t in sorted(VALID_THEMES)]}
+            wewrite_themes = [{"id": f.stem, "name": f.stem} for f in sorted(themes_dir.glob("*.yaml"))]
+            break
+    if not wewrite_themes:
+        wewrite_themes = [{"id": t, "name": t} for t in sorted(VALID_THEMES)]
+    return {"themes": premium_themes + wewrite_themes}
+
+
+def convert_premium(markdown, video_cards=None):
+    """精品排版（学长十一风格，内联样式）"""
+    from service.premium import render as premium_render
+    html_out = premium_render(markdown)
+    html_ns = html_out
+    if video_cards:
+        html_ns = render_video_cards(html_ns, video_cards)
+    return {"html": html_ns, "theme": "premium"}

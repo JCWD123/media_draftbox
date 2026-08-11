@@ -23,7 +23,7 @@ class ConvertRequest(BaseModel):
     @field_validator("theme")
     @classmethod
     def validate_theme(cls, v):
-        allowed = ["professional", "minimal", "github", "newspaper", "bold-navy",
+        allowed = ["premium", "professional", "minimal", "github", "newspaper", "bold-navy",
                    "professional-clean", "bauhaus", "bold-green", "bytedance",
                    "elegant-rose", "focus-red", "impeccable", "ink", "lobster-notes",
                    "midnight", "minimal-gold", "sspai", "tech-modern", "warm-editorial"]
@@ -35,7 +35,8 @@ class ConvertRequest(BaseModel):
 class DraftSaveRequest(BaseModel):
     """草稿保存请求模型"""
     title: str = Field(..., min_length=1, max_length=100, description="草稿标题")
-    content: str = Field(..., min_length=1, max_length=500000, description="草稿内容")
+    content: str = Field(..., min_length=1, max_length=500000, description="Markdown 源内容")
+    html: str = Field(default="", max_length=1000000, description="wewrite 排版后的 HTML（可选）")
 
     @field_validator("title")
     @classmethod

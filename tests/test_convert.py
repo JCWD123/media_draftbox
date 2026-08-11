@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
 
-from service.convert import render_video_cards, render_video_card
+from service.convert import render_video_cards, render_video_card, convert_premium
 
 
 def test_render_video_card_no_video_tag():
@@ -40,3 +40,55 @@ def test_render_video_card_escapes_caption():
     html = render_video_card(card)
     assert "<script>" not in html
     assert "&lt;script&gt;" in html
+
+
+# ---- 精品排版引擎（学长十一风格）----
+
+PREMIUM_MD = (
+    "# 标题示例\n\n"
+    "这是正文段落。\n\n"
+    "## 二级标题\n\n"
+    "> 这是一段引用\n\n"
+    "| 指标 | 数值 |\n"
+    "|------|------|\n"
+    "| 结果 | 10 |\n"
+)
+
+
+def test_premium_render_core_styles():
+    html = convert_premium(PREMIUM_MD)["html"]
+    # 650 限宽
+    assert "max-width:650px" in html
+    # 2 倍行高（阅读舒适）
+    assert "line-height:2" in html
+    # 深蓝强调（h2 左竖线）
+    assert "#1f4ed8" in html
+    # 标题深蓝近黑
+    assert "#172033" in html
+    # 全文内联样式（微信兼容，无 <style>）
+    assert "<style" not in html
+    # 引用块
+    assert "<blockquote" in html
+
+
+def test_premium_render_includes_content():
+    html = convert_premium(PREMIUM_MD)["html"]
+    assert "标题示例" in html
+    assert "二级标题" in html
+    assert "这是一段引用" in html
+    # 统计卡片表格 → section 卡片
+    assert "<section" in html
+    assert "10" in html
+
+
+def test_premium_render_escapes_script():
+    md = "# 标题\n\n<script>alert(1)</script>"
+    html = convert_premium(md)["html"]
+    assert "<script>" not in html
+    assert "&lt;script&gt;" in html
+
+
+def test_premium_shell_wraps_in_section():
+    html = convert_premium("# 标题")["html"]
+    assert html.strip().startswith("<section")
+    assert html.strip().endswith("</section>")

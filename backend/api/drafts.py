@@ -15,7 +15,7 @@ async def get_drafts():
 
 @router.post("")
 async def save(req: DraftSaveRequest):
-    return save_draft(req.title, req.content)
+    return save_draft(req.title, req.content, req.html)
 
 
 @router.get("/{filename}")
