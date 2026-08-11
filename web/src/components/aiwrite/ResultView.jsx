@@ -10,7 +10,7 @@ import { sanitizePreviewHtml } from '../../utils/sanitizePreview'
  */
 const ResultView = memo(({ title, markdown, html, onOpenConvert, onSaveDraft }) => {
   if (!markdown) return null
-  const displayHtml = html ? sanitizePreviewHtml(html) : md.render(markdown)
+  const displayHtml = html ? sanitizePreviewHtml(html, { widen: true }) : md.render(markdown)
   return (
     <div className="ai-result">
       <div className="panel-head"><h3>{title}</h3></div>
