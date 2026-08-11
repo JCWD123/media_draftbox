@@ -4,6 +4,7 @@ import ThemeSelector from '../components/convert/ThemeSelector'
 import { ListDraftsPanel } from '../components/drafts/DraftSelector'
 import { convertMarkdown } from '../service/api/convert'
 import { getDraft } from '../service/api/drafts'
+import { sanitizePreviewHtml } from '../utils/sanitizePreview'
 import { useApp } from '../utils/AppContext'
 
 /**
@@ -105,7 +106,7 @@ export default function ConvertView() {
           <span className="muted">{currentSource}</span>
         </div>
         {recentHtml ? (
-          <div className="preview" dangerouslySetInnerHTML={{ __html: recentHtml }} />
+          <div className="preview" dangerouslySetInnerHTML={{ __html: sanitizePreviewHtml(recentHtml) }} />
         ) : (
           <div className="news-empty">
             {markdown ? '请选择左侧草稿或切换主题生成排版' : '请从左侧选择一篇草稿，或用 AI 写作生成文章'}

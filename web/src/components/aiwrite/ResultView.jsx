@@ -1,15 +1,16 @@
 import { memo } from 'react'
 import Button from '../common/Button'
 import { md } from '../../utils/constants'
+import { sanitizePreviewHtml } from '../../utils/sanitizePreview'
 
 /**
  * AI 生成结果视图
- * - html: 后端渲染好的完整 HTML（直接用 dangerouslySetInnerHTML）
+ * - html: 后端渲染好的完整 HTML（用 sanitizePreviewHtml 隔离 body 选择器后显示）
  * - markdown: 原始 MD（当无 html 时用 md 渲染）
  */
 const ResultView = memo(({ title, markdown, html, onOpenConvert, onSaveDraft }) => {
   if (!markdown) return null
-  const displayHtml = html || md.render(markdown)
+  const displayHtml = html ? sanitizePreviewHtml(html) : md.render(markdown)
   return (
     <div className="ai-result">
       <div className="panel-head"><h3>{title}</h3></div>
