@@ -10,3 +10,7 @@ export const getNewsList = (category, page = 1, pageSize = 20) =>
 // 自定义新闻搜索（ddgs 实时搜索，结果可勾选为写作素材）
 export const searchNews = (query, limit = 12) =>
   request.post('/news/search', { data: { query, limit }, timeout: 30000 })
+
+// 新闻 AI 摘要（不点开原文即了解大致内容）
+export const summarizeNews = (title, summary, link) =>
+  request.post('/news/summarize', { data: { title, summary, link }, timeout: 90000 })

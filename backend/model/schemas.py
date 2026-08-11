@@ -112,6 +112,20 @@ class NewsSearchRequest(BaseModel):
         return v
 
 
+class NewsSummarizeRequest(BaseModel):
+    """新闻 AI 摘要请求模型"""
+    title: str = Field(..., min_length=1, max_length=300, description="新闻标题")
+    summary: str = Field(default="", max_length=5000, description="已有正文/摘要（可选）")
+    link: str = Field(default="", max_length=1000, description="原文链接（正文不足时兜底抓取）")
+
+    @field_validator("title")
+    @classmethod
+    def validate_title(cls, v):
+        if re.search(r"<script|javascript:", v, re.IGNORECASE):
+            raise ValueError("包含危险内容")
+        return v.strip()[:300]
+
+
 class WriteRequest(BaseModel):
     """AI 写作请求（三模态：文字 + 图片 + 视频）"""
     topic: str = Field(..., min_length=1, max_length=500, description="核心思路/话题（必填）")
