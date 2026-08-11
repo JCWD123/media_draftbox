@@ -11,4 +11,7 @@ tests/media/
 backend/media/
 # 生成器产生的媒体文件
 ~/.draftbox/media/
+# 内部开发文档（已迁飞书知识库，不在开源仓库暴露技术实现）
+docs/AI-WRITING-DEV.md
+docs/GITHUB_FLOW.md
 
