@@ -3,10 +3,11 @@ import NewsCheckItem from './NewsCheckItem'
 
 /**
  * 新闻素材勾选面板（类别tab + 列表 + 已选计数）
+ * loading: 切换类别时的加载态
  */
 const NewsPicker = memo(({
   categories, activeCategory, onCategoryChange,
-  news, selectedIds, onToggle, onClear,
+  news, selectedIds, onToggle, onClear, loading = false,
 }) => {
   return (
     <div className="news-select">
@@ -31,15 +32,21 @@ const NewsPicker = memo(({
         </span>
       </div>
       <div className="news-select-list">
-        {news.map(item => (
-          <NewsCheckItem
-            key={item.id}
-            item={item}
-            checked={selectedIds.has(item.id)}
-            onToggle={() => onToggle(item.id)}
-          />
-        ))}
-        {news.length === 0 && <div className="news-empty">点击上方分类加载新闻</div>}
+        {loading ? (
+          <div className="news-loading">
+            <span className="loading-spinner" /> 正在加载该分类新闻…
+          </div>
+        ) : (
+          news.map(item => (
+            <NewsCheckItem
+              key={item.id}
+              item={item}
+              checked={selectedIds.has(item.id)}
+              onToggle={() => onToggle(item.id)}
+            />
+          ))
+        )}
+        {!loading && news.length === 0 && <div className="news-empty">该分类暂无新闻</div>}
       </div>
     </div>
   )

@@ -28,6 +28,8 @@ export default function AiWriteView() {
   const [categories, setCategories] = useState([])
   const [activeCat, setActiveCat] = useState('TECH')
   const [news, setNews] = useState([])
+  const [newsLoading, setNewsLoading] = useState(false) // 切换类别时加载态
+  const newsReqSeq = useRef(0) // 新闻请求序号，防竞态（快速切换类别时只认最新一次）
 
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState('')
@@ -45,7 +47,21 @@ export default function AiWriteView() {
   }, [])
 
   useEffect(() => {
-    getNewsList(activeCat).then(d => setNews(d.news || [])).catch(() => setNews([]))
+    // 切换类别：立即清空旧类别新闻 + 显示加载态，避免残留上个类别的新闻
+    setNews([])
+    setNewsLoading(true)
+    const seq = ++newsReqSeq.current // 本类别请求序号
+    getNewsList(activeCat)
+      .then(d => {
+        // 竞态防护：若期间已经切到别的类别（seq 变了），丢弃本次过期响应
+        if (seq === newsReqSeq.current) setNews(d.news || [])
+      })
+      .catch(() => {
+        if (seq === newsReqSeq.current) setNews([])
+      })
+      .finally(() => {
+        if (seq === newsReqSeq.current) setNewsLoading(false)
+      })
   }, [activeCat])
 
   useEffect(() => () => {
@@ -157,6 +173,7 @@ export default function AiWriteView() {
         news={news} selectedIds={selected}
         onToggle={toggleNews}
         onClear={() => setSelected(new Set())}
+        loading={newsLoading}
       />
 
       {/* 自定义新闻搜索（ddgs 实时搜索） */}
