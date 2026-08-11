@@ -60,7 +60,10 @@ def search_web(query: str, limit: int = 8) -> dict:
             }, timeout=_TIMEOUT)
             if resp.status_code != 200:
                 return {"news": [], "total": 0, "error": f"Jina 搜索失败 HTTP {resp.status_code}"}
-            html = resp.text
+            # ⚠️ 必须用 resp.content.decode('utf-8') 而非 resp.text
+            # Jina 响应头未声明 charset，requests 的 resp.text 默认 ISO-8859-1(Latin-1) 解码，
+            # UTF-8 中文会变乱码（如 "AIè§喍é¢çæå¨"）。显式 UTF-8 解码修复。
+            html = resp.content.decode("utf-8", errors="ignore")
         except Exception as e:
             return {"news": [], "total": 0, "error": f"Jina 搜索失败: {str(e)[:80]}"}
 
@@ -157,7 +160,7 @@ def fetch_article(url: str) -> dict:
             )
             if resp.status_code != 200:
                 return {"ok": False, "body": "", "title": "", "error": f"抓取失败 HTTP {resp.status_code}"}
-            text = resp.text
+            text = resp.content.decode("utf-8", errors="ignore")
         except Exception as e:
             return {"ok": False, "body": "", "title": "", "error": f"抓取失败: {str(e)[:80]}"}
 
