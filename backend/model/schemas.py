@@ -96,6 +96,22 @@ class NewsRequest(BaseModel):
         return v
 
 
+class NewsSearchRequest(BaseModel):
+    """自定义新闻搜索请求模型"""
+    query: str = Field(..., min_length=1, max_length=100, description="搜索关键词")
+    limit: int = Field(default=12, ge=1, le=30, description="返回数量")
+
+    @field_validator("query")
+    @classmethod
+    def validate_query(cls, v):
+        v = v.strip()
+        if len(v) < 2:
+            raise ValueError("搜索词太短（至少 2 字）")
+        if re.search(r"<script|javascript:", v, re.IGNORECASE):
+            raise ValueError("包含危险内容")
+        return v
+
+
 class WriteRequest(BaseModel):
     """AI 写作请求（三模态：文字 + 图片 + 视频）"""
     topic: str = Field(..., min_length=1, max_length=500, description="核心思路/话题（必填）")

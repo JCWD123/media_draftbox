@@ -102,10 +102,26 @@ def get_news_list(category: str, page: int, page_size: int):
 
 
 def fetch_news_by_ids(ids: List[str], limit: int = 100) -> List[Dict]:
-    """按 id 回查新闻（拉全部分类最近新闻构建映射）"""
+    """按 id 回查新闻（拉全部分类最近新闻构建映射 + 自定义搜索缓存）"""
     if not ids:
         return []
-    # 拉全部分类最近新闻构建 id → item 映射
+
+    # 1) 先从自定义搜索缓存回查（勾选的自定义搜索新闻）
+    try:
+        from tools.custom_search import get_from_cache
+        found = get_from_cache(ids)
+        if len(found) >= len(ids):
+            return found
+        # 缓存命中的去掉，剩下的走常规分类
+        found_ids = {f["id"] for f in found}
+        remaining = [i for i in ids if i not in found_ids]
+    except Exception:
+        found, remaining = [], list(ids)
+
+    if not remaining:
+        return found
+
+    # 2) 拉全部分类最近新闻构建 id → item 映射
     categories = ["FINANCE", "TECH", "SOCIAL", "DEVELOPER", "VIDEO", "COMMUNITY", "KNOWLEDGE"]
     id_map = {}
     for cat in categories:
@@ -117,4 +133,5 @@ def fetch_news_by_ids(ids: List[str], limit: int = 100) -> List[Dict]:
             continue
         if len(id_map) >= limit * 2:
             break
-    return [id_map[i] for i in ids if i in id_map]
+    found += [id_map[i] for i in remaining if i in id_map]
+    return found

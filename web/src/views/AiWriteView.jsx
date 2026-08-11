@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import TopicInput from '../components/aiwrite/TopicInput'
 import MediaOptions from '../components/aiwrite/MediaOptions'
 import NewsPicker from '../components/aiwrite/NewsPicker'
+import NewsCheckItem from '../components/aiwrite/NewsCheckItem'
 import TagBar from '../components/aiwrite/TagBar'
 import WarningBox from '../components/aiwrite/WarningBox'
 import ResultView from '../components/aiwrite/ResultView'
 import Button from '../components/common/Button'
-import { getCategories, getNewsList } from '../service/api/news'
+import { getCategories, getNewsList, searchNews } from '../service/api/news'
 import { generateArticle, getMediaStatus } from '../service/api/aiwrite'
 import { useApp } from '../utils/AppContext'
 
@@ -24,6 +25,11 @@ export default function AiWriteView() {
   const [activeCat, setActiveCat] = useState('TECH')
   const [news, setNews] = useState([])
   const [selected, setSelected] = useState(new Set())
+
+  // 自定义新闻搜索
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState([])
+  const [searching, setSearching] = useState(false)
 
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState('')
@@ -58,6 +64,27 @@ export default function AiWriteView() {
       }
       return next
     })
+  }
+
+  // 自定义新闻搜索（ddgs 实时搜索，结果进入可勾选列表）
+  const doSearch = async () => {
+    if (!searchQuery.trim()) { showToast('warn', '请输入搜索关键词'); return }
+    setSearching(true)
+    try {
+      const res = await searchNews(searchQuery.trim(), 12)
+      if (!res.news || res.news.length === 0) {
+        showToast('info', res.error || '未搜索到相关新闻')
+        setSearchResults([])
+      } else {
+        setSearchResults(res.news)
+        showToast('success', `搜到 ${res.news.length} 条新闻`)
+      }
+    } catch (e) {
+      showToast('error', `搜索失败: ${e.message}`)
+      setSearchResults([])
+    } finally {
+      setSearching(false)
+    }
   }
 
   const pollVideo = (draftId) => {
@@ -133,6 +160,47 @@ export default function AiWriteView() {
         onToggle={toggleNews}
         onClear={() => setSelected(new Set())}
       />
+
+      {/* 自定义新闻搜索（ddgs 实时搜索） */}
+      <div className="news-select custom-search">
+        <div className="news-select-header">
+          <h3>🔍 自定义搜索新闻（实时）</h3>
+          <div className="search-bar">
+            <input
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && doSearch()}
+              placeholder="输入关键词，如: 开源AI模型 / 视频生成 / agent框架..."
+              className="search-input"
+            />
+            <Button variant="primary" onClick={doSearch} loading={searching}>
+              {searching ? '搜索中' : '🔍 搜索'}
+            </Button>
+          </div>
+        </div>
+        {searchResults.length > 0 && (
+          <>
+            <div className="search-result-count">
+              搜索到 {searchResults.length} 条，勾选后可作为写作素材
+              <button className="link-btn" onClick={() => setSelected(new Set())}>清空选中</button>
+            </div>
+            <div className="news-select-list">
+              {searchResults.map(item => (
+                <NewsCheckItem
+                  key={item.id}
+                  item={item}
+                  checked={selected.has(item.id)}
+                  onToggle={() => toggleNews(item.id)}
+                />
+              ))}
+            </div>
+          </>
+        )}
+        {searchResults.length === 0 && !searching && (
+          <div className="news-empty">输入关键词搜索 AI 圈/技术类实时新闻，如「开源AI模型」「Agent框架」</div>
+        )}
+      </div>
+
       <TagBar tags={tags} vertical={vertical} />
       <WarningBox warnings={warnings} />
       <ResultView
