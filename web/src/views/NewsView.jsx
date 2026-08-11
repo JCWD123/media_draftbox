@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import CategorySidebar from '../components/news/CategorySidebar'
 import NewsList from '../components/news/NewsList'
-import { getCategories, getNewsList } from '../service/api/news'
+import { getCategories } from '../service/api/news'
+import { getCachedNews, prefetchNews } from '../utils/newsCache'
 
 /**
  * 热点新闻页
@@ -22,12 +23,13 @@ export default function NewsView({ }) {
   }, [])
 
   const loadNews = async (cat) => {
-    setCategory(cat); setLoading(true)
+    setCategory(cat)
+    setLoading(true)
     try {
-      const d = await getNewsList(cat)
-      setNews(d.news || [])
+      const { news } = await getCachedNews(cat)
+      setNews(news)
     } catch { setNews([]) }
-    setLoading(false)
+    setLoading(false) // 数据到手后必关 loading（无论缓存命中与否）
   }
 
   useEffect(() => { loadNews('TECH') }, [])

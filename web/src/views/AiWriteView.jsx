@@ -8,7 +8,8 @@ import TagBar from '../components/aiwrite/TagBar'
 import WarningBox from '../components/aiwrite/WarningBox'
 import ResultView from '../components/aiwrite/ResultView'
 import Button from '../components/common/Button'
-import { getCategories, getNewsList, searchNews } from '../service/api/news'
+import { getCategories, searchNews } from '../service/api/news'
+import { getCachedNews, peekNewsCache } from '../utils/newsCache'
 import { generateArticle, getMediaStatus } from '../service/api/aiwrite'
 import { useApp } from '../utils/AppContext'
 
@@ -46,22 +47,26 @@ export default function AiWriteView() {
     }).catch(() => {})
   }, [])
 
+  // 预取下个类别（可选优化，这里不做预取）
   useEffect(() => {
-    // 切换类别：立即清空旧类别新闻 + 显示加载态，避免残留上个类别的新闻
+    // 切换类别：优先读缓存（秒开）；缓存未命中才清空+loading
+    const cat = activeCat
+    const seq = ++newsReqSeq.current // 竞态防护序号
+    const { exists } = peekNewsCache(cat)
+    if (exists) {
+      // 缓存命中：立即显示，不闪加载态
+      getCachedNews(cat).then(({ news }) => {
+        if (seq === newsReqSeq.current) setNews(news)
+      })
+      return
+    }
+    // 缓存未命中：清空 + loading
     setNews([])
     setNewsLoading(true)
-    const seq = ++newsReqSeq.current // 本类别请求序号
-    getNewsList(activeCat)
-      .then(d => {
-        // 竞态防护：若期间已经切到别的类别（seq 变了），丢弃本次过期响应
-        if (seq === newsReqSeq.current) setNews(d.news || [])
-      })
-      .catch(() => {
-        if (seq === newsReqSeq.current) setNews([])
-      })
-      .finally(() => {
-        if (seq === newsReqSeq.current) setNewsLoading(false)
-      })
+    getCachedNews(cat)
+      .then(({ news }) => { if (seq === newsReqSeq.current) setNews(news) })
+      .catch(() => { if (seq === newsReqSeq.current) setNews([]) })
+      .finally(() => { if (seq === newsReqSeq.current) setNewsLoading(false) })
   }, [activeCat])
 
   useEffect(() => () => {
