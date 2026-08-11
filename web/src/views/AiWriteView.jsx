@@ -140,6 +140,12 @@ export default function AiWriteView() {
       else if (d.vertical_check?.domain) setVertical(`✓ 垂直领域: ${d.vertical_check.domain}`)
       else setVertical('')
       setWarnings(d.warnings || [])
+      // 自动保存草稿：每次 AI 写作完成都入库，便于后续排版/展览
+      try {
+        await saveAsDraft(d.title || topic.trim() || 'AI生成文章', d.content, d.html || '')
+      } catch (e) {
+        setWarnings(prev => [...prev, `草稿自动保存失败: ${e.message}`])
+      }
       if (d.video_pending) pollVideo(d.draft_id)
     } catch (e) {
       setWarnings([`生成失败: ${e.message}`])
