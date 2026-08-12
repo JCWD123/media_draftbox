@@ -62,6 +62,49 @@ curl -fsSL https://raw.githubusercontent.com/JCWD123/media_draftbox/main/install
 irm https://raw.githubusercontent.com/JCWD123/media_draftbox/main/install.ps1 | iex
 ```
 
+## 🐳 Docker 部署
+
+> **国内镜像加速**：直接拉官方镜像（docker.io）可能很慢，推荐用国内镜像加速器（如 `docker.m.daocloud.io`），速度会快很多。
+
+### 构建镜像（含国内源加速）
+
+项目自带 `Dockerfile`，构建时已内置**国内 apt / pip / npm 镜像源**（阿里云 + npmmirror），比官方源快很多：
+
+```bash
+# 在项目根目录
+docker build -t draftbox .
+```
+
+> 若想整条链路都用国内镜像，把 Dockerfile 基础镜像替换为国内镜像：
+> ```dockerfile
+> FROM docker.m.daocloud.io/library/python:3.11-slim
+> ```
+
+### 运行
+
+```bash
+# 启动（前端 3000 + 后端 8502）
+docker run -d -p 3000:3000 -p 8502:8502 --name draftbox draftbox
+
+# 查看日志
+docker logs -f draftbox
+
+# 停止 / 移除
+docker stop draftbox && docker rm draftbox
+```
+
+### 配置模型 Key
+
+AI 写作需要大模型 Key，把本机配置挂载进容器（推荐方式，key 不写入镜像）：
+
+```bash
+docker run -d -p 3000:3000 -p 8502:8502 \
+  -v "$HOME/.draftbox/config.yaml:/root/.draftbox/config.yaml" \
+  --name draftbox draftbox
+```
+
+然后访问 http://localhost:3000 使用，API 文档在 http://localhost:8502/docs。
+
 ## 💻 使用
 
 ```bash
