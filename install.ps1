@@ -1,4 +1,4 @@
-# DraftBox Windows 安装脚本
+﻿# DraftBox Windows 安装脚本
 # 用法: irm https://raw.githubusercontent.com/JCWD123/media_draftbox/main/install.ps1 | iex
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
