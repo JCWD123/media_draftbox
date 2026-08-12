@@ -6,6 +6,17 @@ set -e
 
 echo "🚀 DraftBox 安装中..."
 
+# 检测 Python 命令（兼容 python3 / python 两种命名）
+if command -v python3 &> /dev/null; then
+    PYTHON=python3
+elif command -v python &> /dev/null; then
+    PYTHON=python
+else
+    echo "❌ 未找到 python/python3，请先安装 Python 3" >&2
+    exit 1
+fi
+echo "  使用 Python: $PYTHON"
+
 INSTALL_DIR="$HOME/.draftbox"
 
 # 清理不完整目录
@@ -51,8 +62,10 @@ mkdir -p "$HOME/.local/bin"
 # 创建 draftbox 脚本
 cat > "$HOME/.local/bin/draftbox" << 'COMMAND'
 #!/bin/bash
+# 运行时检测 python 命令（兼容 python3/python）
+if command -v python3 &> /dev/null; then PY=python3; else PY=python; fi
 cd ~/.draftbox
-python cli.py "$@"
+exec "$PY" cli.py "$@"
 COMMAND
 chmod +x "$HOME/.local/bin/draftbox"
 echo "  ✅ 已创建 ~/.local/bin/draftbox"
@@ -85,4 +98,4 @@ echo ""
 
 # 立即执行 setup
 cd "$INSTALL_DIR"
-python cli.py setup
+$PYTHON cli.py setup
