@@ -1,0 +1,24 @@
+# Git
+.git/
+.gitignore
+
+# 依赖
+node_modules/
+web/node_modules/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# 前端构建产物
+web/dist/
+
+# 媒体/临时
+backend/media/
+tests/media/
+docs/media/
+
+# 本地配置
+.env
+~/.draftbox/
