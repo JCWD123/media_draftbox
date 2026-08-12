@@ -1,5 +1,5 @@
 # DraftBox Windows 安装脚本
-# 用法: irm https://raw.githubusercontent.com/JCWD123/media_draftbox/master/install.ps1 | iex
+# 用法: irm https://raw.githubusercontent.com/JCWD123/media_draftbox/main/install.ps1 | iex
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
@@ -22,7 +22,7 @@ if (-not (Test-Path "$InstallDir\cli.py")) {
     Push-Location $InstallDir
     git init -q
     git remote add origin https://github.com/JCWD123/media_draftbox.git
-    git fetch --depth 1 origin master -q
+    git fetch --depth 1 origin main -q
     git checkout FETCH_HEAD -q
     Pop-Location
 }
