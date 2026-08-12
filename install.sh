@@ -1,6 +1,6 @@
 #!/bin/bash
 # DraftBox 一键安装脚本
-# Linux/macOS: curl -fsSL https://raw.githubusercontent.com/JCWD123/media_draftbox/master/install.sh | bash
+# Linux/macOS: curl -fsSL https://raw.githubusercontent.com/JCWD123/media_draftbox/main/install.sh | bash
 
 set -e
 
@@ -21,7 +21,7 @@ if [ ! -f "$INSTALL_DIR/cli.py" ]; then
     cd "$INSTALL_DIR"
     git init -q
     git remote add origin https://github.com/JCWD123/media_draftbox.git
-    git fetch --depth 1 origin master -q
+    git fetch --depth 1 origin main -q
     git checkout FETCH_HEAD -q
     cd -
 fi
