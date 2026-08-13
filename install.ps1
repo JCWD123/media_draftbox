@@ -94,11 +94,11 @@ if (-not (Test-Path "$InstallDir\cli.py")) {
 
 # 安装 Python 依赖
 Write-Host "📦 安装 Python 依赖..." -ForegroundColor Yellow
-# 用 cmd /c 包装 pip，避免 pip 写 stderr 在 $ErrorActionPreference=Stop 下被误判终止
-cmd /c "pip install fastapi uvicorn pyyaml requests markdown beautifulsoup4 Pillow feedparser -q"
+# 用 cmd /c 包装 pip，避免 pip 写 stderr 在严格模式下被误判终止
+cmd /c "pip install fastapi uvicorn pyyaml requests markdown beautifulsoup4 Pillow feedparser ddgs -q"
 if ($LASTEXITCODE -ne 0) {
     Write-Host "  ⚠️  pip 失败，尝试 python -m pip ..." -ForegroundColor Yellow
-    cmd /c "python -m pip install fastapi uvicorn pyyaml requests markdown beautifulsoup4 Pillow feedparser -q"
+    cmd /c "python -m pip install fastapi uvicorn pyyaml requests markdown beautifulsoup4 Pillow feedparser ddgs -q"
 }
 Write-Host "  ✅ Python 依赖就绪" -ForegroundColor Green
 
@@ -137,6 +137,23 @@ if ($wewriteCmd) {
             Write-Host "  ⚠️  wewrite 安装失败（排版转换功能不可用），可稍后手动: pip install wewrite" -ForegroundColor Yellow
         }
     }
+}
+
+# ddgs（DuckDuckGo 实时搜索）需要 Python >=3.10；缺失时仅影响「自定义新闻搜索」，不阻断安装
+$ddgsCmd = Get-Command ddgs -ErrorAction SilentlyContinue
+$hasDdgsModule = $false
+if (-not $ddgsCmd) {
+    # 用当前 python 探测 import 是否可用
+    $ddgsProbe = & python -c "import ddgs" 2>$null
+    if ($LASTEXITCODE -eq 0) { $hasDdgsModule = $true }
+}
+if (($ddgsCmd) -or $hasDdgsModule) {
+    Write-Host "📦 ddgs（自定义新闻搜索）已就绪" -ForegroundColor Green
+} elseif ($pyMajorMinor -lt 310) {
+    Write-Host "  ⚠️  当前 Python $pyVerLabel < 3.10，ddgs 需要 Python >=3.10" -ForegroundColor Yellow
+    Write-Host "     自定义新闻搜索（DuckDuckGo）功能将不可用，其余功能不受影响" -ForegroundColor Yellow
+} else {
+    Write-Host "  ⚠️  ddgs 未安装，可手动: pip install ddgs" -ForegroundColor Yellow
 }
 
 # 安装前端依赖
