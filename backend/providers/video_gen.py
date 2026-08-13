@@ -28,12 +28,31 @@ class VideoProvider(ABC):
 
 
 class ARKSeedanceProvider(VideoProvider):
-    """火山方舟 Seedance - 异步任务模式（POST /contents/generations/tasks）"""
+    """火山方舟 Seedance - 异步任务模式（POST /contents/generations/tasks）
+
+    可用模型（2026-08 实测）：
+    - doubao-seedance-1-0-pro-250528   ✅ Seedance 1.0 Pro（默认，旧 key 已开通）
+    - doubao-seedance-1-0-pro-fast-251015 ✅ Seedance 1.0 Pro Fast（快速版）
+    - doubao-seedance-2-0-260128       ⚠️ Seedance 2.0（需控制台开通）
+    - doubao-seedance-2-0-fast-260128  ⚠️ Seedance 2.0 Fast（需控制台开通）
+    - doubao-seedance-2-0-mini-260615  ⚠️ Seedance 2.0 Mini（需控制台开通）
+    - doubao-seedance-2-5-260628       ⚠️ Seedance 2.5（需控制台开通）
+    """
 
     name = "ark"
     base_url = "https://ark.cn-beijing.volces.com/api/v3"
     poll_interval = 5
     max_wait = 300  # 5 分钟上限
+
+    # 可用模型清单
+    AVAILABLE_MODELS = [
+        "doubao-seedance-1-0-pro-250528",
+        "doubao-seedance-1-0-pro-fast-251015",
+        "doubao-seedance-2-0-260128",
+        "doubao-seedance-2-0-fast-260128",
+        "doubao-seedance-2-0-mini-260615",
+        "doubao-seedance-2-5-260628",
+    ]
 
     def __init__(self, config: Dict = None):
         super().__init__(config)

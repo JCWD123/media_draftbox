@@ -28,10 +28,27 @@ class ImageProvider(ABC):
 
 
 class ARKSeedreamProvider(ImageProvider):
-    """火山方舟 Seedream（已验证格式，见 seedream-ark-image-api skill）"""
+    """火山方舟 Seedream（已验证格式，见 seedream-ark-image-api skill）
+
+    可用模型（2026-08 实测，按优先级排列）：
+    - doubao-seedream-4-0-250828      ✅ 即梦 4.0（默认，参数: 显式宽x高）
+    - doubao-seedream-5-0-260128      ✅ 即梦 5.0（不传 size，自动判断宽高比）
+    - doubao-seedream-5-0-pro-260628  ⚠️ 即梦 5.0 Pro（已开通但常触发额度限制）
+    - doubao-seedream-4-0-20260415    ⚠️ 即梦 4.0 新版（需控制台开通）
+    - doubao-seedream-4-5-251128      ⚠️ 即梦 4.5（需控制台开通）
+    """
 
     name = "ark"
     base_url = "https://ark.cn-beijing.volces.com/api/v3"
+
+    # 可用模型清单
+    AVAILABLE_MODELS = [
+        "doubao-seedream-4-0-250828",
+        "doubao-seedream-5-0-260128",
+        "doubao-seedream-5-0-pro-260628",
+        "doubao-seedream-4-0-20260415",
+        "doubao-seedream-4-5-251128",
+    ]
 
     def __init__(self, config: Dict = None):
         super().__init__(config)
@@ -46,12 +63,19 @@ class ARKSeedreamProvider(ImageProvider):
         payload = {
             "model": self.model,
             "prompt": prompt,
-            # 🔴 横版必须显式写 宽x高（写 "2K" 会得到竖版）
-            "size": size,
             "response_format": "url",
             "watermark": False,
             # 不要传 output_format 参数（400 坑）
         }
+        # 🔴 模型分支：5.0 系列不传 size（自动判断宽高比），4.x 显式传宽x高
+        is_v5 = self.model.startswith("doubao-seedream-5-")
+        if is_v5:
+            # 5.0 不传 size；默认生成 2K，模型根据 prompt 智能判断宽高比
+            pass
+        else:
+            # 4.x 必须显式写 宽x高（写 "2K" 会得到竖版）
+            payload["size"] = size
+
         s = requests.Session()
         s.trust_env = False  # 国内直连，绕开 Clash 代理
 

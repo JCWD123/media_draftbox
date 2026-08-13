@@ -296,33 +296,86 @@ def cmd_setup():
         "1" if img_provider != "openai" else "2",
     )
     img_new_provider = "openai" if prov_choice.strip() == "2" else "ark"
-    default_model = "gpt-image-2" if img_new_provider == "openai" else "doubao-seedream-4-0-250828"
-    img_key = safe_input(
-        f"  {'OpenAI' if img_new_provider == 'openai' else 'ARK'} API Key [{img_cfg.get('api_key','') or '未设置'}]: "
-    )
-    img_model = safe_input(f"  模型名 [{img_cfg.get('model','') or default_model}]: ") or img_cfg.get('model','') or default_model
-    if img_key or img_new_provider != img_provider or img_model != img_cfg.get('model',''):
-        cfg["image"] = {
-            "provider": img_new_provider,
-            "api_key": img_key or img_cfg.get("api_key", ""),
-            "model": img_model,
-        }
-        save_config(cfg)
-        print("  ✅ 图片生成已保存")
 
-    # 视频生成配置（Seedance，异步任务）
+    if img_new_provider == "openai":
+        img_key = safe_input(f"  OpenAI API Key [{img_cfg.get('api_key','') or '未设置'}]: ")
+        img_model = safe_input(f"  模型名 [{img_cfg.get('model','') or 'gpt-image-2'}]: ") or img_cfg.get('model','') or 'gpt-image-2'
+    else:
+        # 火山方舟 Seedream：key + 模型清单选择
+        ark_key = safe_input(f"  ARK API Key [{img_cfg.get('api_key','') or '未设置'}]: ")
+        img_models = [
+            "doubao-seedream-4-0-250828",     # 即梦4.0（默认）
+            "doubao-seedream-5-0-260128",     # 即梦5.0
+            "doubao-seedream-5-0-pro-260628", # 即梦5.0 Pro
+            "doubao-seedream-4-0-20260415",   # 即梦4.0 新版
+            "doubao-seedream-4-5-251128",     # 即梦4.5
+        ]
+        current_img = img_cfg.get('model', img_models[0])
+        print("  图片模型:")
+        for i, m in enumerate(img_models, 1):
+            marker = "●" if m == current_img else "○"
+            print(f"    ({marker}) {i}. {m}")
+        print(f"    (○) {len(img_models)+1}. 自定义模型名")
+        img_choice = safe_input(f"  选择 [{img_models.index(current_img)+1 if current_img in img_models else 1}]: ")
+        img_model = current_img
+        if img_choice:
+            try:
+                idx = int(img_choice) - 1
+                if 0 <= idx < len(img_models):
+                    img_model = img_models[idx]
+                elif idx == len(img_models):
+                    custom = safe_input("  自定义模型名: ")
+                    if custom:
+                        img_model = custom
+            except ValueError:
+                pass
+        img_key = ark_key
+
+    cfg["image"] = {
+        "provider": img_new_provider,
+        "api_key": img_key or img_cfg.get("api_key", ""),
+        "model": img_model,
+    }
+    save_config(cfg)
+    print("  ✅ 图片生成已保存")
+
+    # 视频生成配置（Seedance，异步任务，模型清单选择）
     print("\n\x1b[36m  ── 视频生成模型 ──\x1b[0m")
     vid_cfg = cfg.get("video", {})
-    default_vid_model = "doubao-seedance-1-0-pro-250528"
     vid_key = safe_input(f"  ARK API Key [{vid_cfg.get('api_key','') or '未设置'}]: ")
-    vid_model = safe_input(f"  模型名 [{vid_cfg.get('model','') or default_vid_model}]: ") or vid_cfg.get('model','') or default_vid_model
-    if vid_key or vid_model != vid_cfg.get('model',''):
-        cfg["video"] = {
-            "api_key": vid_key or vid_cfg.get("api_key", ""),
-            "model": vid_model,
-        }
-        save_config(cfg)
-        print("  ✅ 视频生成已保存")
+    vid_models = [
+        "doubao-seedance-1-0-pro-250528",      # Seedance 1.0 Pro（默认）
+        "doubao-seedance-1-0-pro-fast-251015", # 1.0 Pro Fast
+        "doubao-seedance-2-0-260128",          # 2.0
+        "doubao-seedance-2-0-fast-260128",     # 2.0 Fast
+        "doubao-seedance-2-0-mini-260615",     # 2.0 Mini
+        "doubao-seedance-2-5-260628",          # 2.5
+    ]
+    current_vid = vid_cfg.get('model', vid_models[0])
+    print("  视频模型:")
+    for i, m in enumerate(vid_models, 1):
+        marker = "●" if m == current_vid else "○"
+        print(f"    ({marker}) {i}. {m}")
+    print(f"    (○) {len(vid_models)+1}. 自定义模型名")
+    vid_choice = safe_input(f"  选择 [{vid_models.index(current_vid)+1 if current_vid in vid_models else 1}]: ")
+    vid_model = current_vid
+    if vid_choice:
+        try:
+            idx = int(vid_choice) - 1
+            if 0 <= idx < len(vid_models):
+                vid_model = vid_models[idx]
+            elif idx == len(vid_models):
+                custom = safe_input("  自定义模型名: ")
+                if custom:
+                    vid_model = custom
+        except ValueError:
+            pass
+    cfg["video"] = {
+        "api_key": vid_key or vid_cfg.get("api_key", ""),
+        "model": vid_model,
+    }
+    save_config(cfg)
+    print("  ✅ 视频生成已保存")
 
     # 服务端口
     print("\n\x1b[36m  ── 服务端口 ──\x1b[0m")
