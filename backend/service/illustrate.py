@@ -222,6 +222,18 @@ def _gen_image(prompt: str, size: str, filename_noext: str):
     return f"/media/images/{path.name}"
 
 
+def _brief_err(e: Exception) -> str:
+    """把异常转成简短可读的警告文本，优先保留错误码（AccountOverdueError / 403 等）供前端识别"""
+    s = str(e)
+    # 提取 code 字段（如 {"error":{"code":"AccountOverdueError"}}）
+    m = re.search(r'"code"\s*:\s*"([^"]+)"', s)
+    if m:
+        code = m.group(1)
+        # 保留 code + 前 80 字，避免 key 等敏感信息被截进来
+        return f"{code}: {s.split('{')[0].strip()[:80]}"
+    return s[:120]
+
+
 def illustrate(html: str, material_md: str) -> Dict:
     """主入口：给 html 按物料配图，返回 {html, inserted, warnings}"""
     if not html or not html.strip():
@@ -250,7 +262,7 @@ def illustrate(html: str, material_md: str) -> Dict:
             else:
                 warnings.append("封面图：未找到 <h1>，跳过")
         except Exception as e:
-            warnings.append(f"封面图生成失败: {str(e)[:120]}")
+            warnings.append(f"封面图生成失败: {_brief_err(e)}")
 
     # 2. 正文插图 → 插到对应 <h2> 章节之后
     for i, fig in enumerate(mat["figures"], 1):
@@ -264,7 +276,7 @@ def illustrate(html: str, material_md: str) -> Dict:
             new_html = new_html[:pos] + tag + new_html[pos:]
             inserted.append({"label": fig["label"], "position": "章节后", "url": url, "ok": True})
         except Exception as e:
-            warnings.append(f"插图「{fig['label']}」生成失败: {str(e)[:120]}")
+            warnings.append(f"插图「{fig['label']}」生成失败: {_brief_err(e)}")
 
     return {
         "success": True,

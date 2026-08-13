@@ -9,6 +9,23 @@ import { sanitizePreviewHtml } from '../utils/sanitizePreview'
 import { useApp } from '../utils/AppContext'
 
 /**
+ * 从后端 warning 文本里提炼可读的原因（识别常见错误，给可操作提示）
+ */
+function shortError(warning) {
+  if (!warning) return ''
+  const w = String(warning)
+  if (/AccountOverdue|overdue balance|欠费/i.test(w)) return '图片服务账户欠费，请充值后重试'
+  if (/403|Forbidden/i.test(w)) return '图片服务拒绝请求(403)，可能是账户欠费或权限问题'
+  if (/401|Unauthorized|api key|key错误|鉴权/i.test(w)) return '图片服务 API Key 无效，请检查配置'
+  if (/429|rate limit|限流/i.test(w)) return '图片服务限流，请稍后重试'
+  if (/timeout|超时/i.test(w)) return '图片生成超时，请重试'
+  // 兜底：截取错误里的 code/message 关键片段
+  const codeMatch = w.match(/code["']?\s*[:：]\s*["']?(\w+)/i)
+  if (codeMatch) return `图片服务错误: ${codeMatch[1]}`
+  return w.slice(0, 80)
+}
+
+/**
  * 排版转换页
  * - 左侧：草稿选择（加载某篇草稿的 markdown） + 主题切换 + 复制
  * - 右侧：wewrite 排版预览（随主题切换实时重新渲染）
@@ -108,14 +125,32 @@ export default function ConvertView() {
     setIllustrating(true)
     try {
       const res = await illustrateArticle(recentHtml, materialMd)
-      if (res.success && res.html) {
-        setRecentHtml(res.html); setHtml(res.html)
-        const n = (res.inserted || []).filter(i => i.ok).length
-        const warn = (res.warnings || []).length
-        showToast('success', `✅ 已插入 ${n} 张图片${warn ? `，${warn} 条警告` : ''}`)
-        if (warn) res.warnings.slice(0, 3).forEach(w => showToast('info', w))
-      } else {
+      if (!res.success) {
         showToast('error', `配图失败: ${res.error || '未知错误'}`)
+        return
+      }
+
+      const inserted = (res.inserted || []).filter(i => i.ok)
+      const warnings = res.warnings || []
+      const nOk = inserted.length
+      const nFail = warnings.length
+
+      // 三态结果：全成功 / 部分成功 / 全失败
+      if (nOk > 0 && nFail === 0) {
+        // 全部成功
+        setRecentHtml(res.html); setHtml(res.html)
+        showToast('success', `✅ 已插入 ${nOk} 张图片`)
+      } else if (nOk > 0 && nFail > 0) {
+        // 部分成功
+        setRecentHtml(res.html); setHtml(res.html)
+        showToast('warn', `⚠️ 成功 ${nOk} 张，失败 ${nFail} 张`)
+        const reason = shortError(warnings[0])
+        if (reason) showToast('info', `失败原因: ${reason}`)
+      } else {
+        // 全部失败（nOk === 0）
+        const reason = shortError(warnings[0])
+        showToast('error', reason ? `❌ 配图失败: ${reason}` : '❌ 配图失败，图片生成失败')
+        // 不改动 html，保持原预览
       }
     } catch (e) {
       showToast('error', `配图失败: ${e.message}`)
