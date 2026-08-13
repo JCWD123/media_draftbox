@@ -147,3 +147,16 @@ class WriteRequest(BaseModel):
         if re.search(r"<script|javascript:", v, re.IGNORECASE):
             raise ValueError("包含危险内容")
         return v
+
+
+class IllustrateRequest(BaseModel):
+    """文章配图请求（根据发布物料.md 给 HTML 插图）"""
+    html: str = Field(..., min_length=1, max_length=1000000, description="文章 HTML（微信兼容）")
+    material_md: str = Field(..., min_length=1, max_length=100000, description="发布物料.md 内容")
+
+    @field_validator("html")
+    @classmethod
+    def validate_html(cls, v):
+        if re.search(r"<script|javascript:|on\w+\s*=", v, re.IGNORECASE):
+            raise ValueError("包含危险内容")
+        return v
