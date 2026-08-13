@@ -315,6 +315,12 @@ body {
 
 /* 草稿选择面板 */
 .draft-selector { margin-top: var(--space-4); border-top: 1px solid var(--border-soft); padding-top: var(--space-3); }
+
+/* 配图面板 */
+.illustrate-panel { margin-top: var(--space-4); border-top: 1px solid var(--border-soft); padding-top: var(--space-3); }
+.illustrate-panel h4 { font-size: 13px; color: var(--text-2); font-weight: 600; margin-bottom: var(--space-2); }
+.illustrate-row { display: flex; gap: var(--space-2); }
+.illustrate-meta { margin-top: var(--space-2); font-size: 12px; }
 .draft-selector-head { margin-bottom: var(--space-2); }
 .draft-selector-head h4 { font-size: 13px; color: var(--text-2); font-weight: 600; margin-bottom: var(--space-2); }
 .draft-selector-list { max-height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: var(--space-1); }
