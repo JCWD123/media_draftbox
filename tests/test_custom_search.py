@@ -5,16 +5,25 @@
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
 
-from tools.custom_search import search_news, get_from_cache, SEARCH_CACHE
+from tools.custom_search import search_news, get_from_cache, SEARCH_CACHE, DDGS_AVAILABLE
 from service.news import fetch_news_by_ids
+
+# ddgs 是可选依赖（需 Python >=3.9/3.10），未安装时跳过需要真实搜索的测试
+requires_ddgs = pytest.mark.skipif(
+    not DDGS_AVAILABLE,
+    reason="ddgs 未安装（需 Python >=3.9），跳过真实搜索测试",
+)
 
 
 def _clean_cache():
     SEARCH_CACHE.clear()
 
 
+@requires_ddgs
 def test_search_returns_standard_structure():
     """搜索返回 draftbox 标准新闻结构（含项目必需字段）"""
     _clean_cache()
@@ -29,6 +38,7 @@ def test_search_returns_standard_structure():
         assert n["category"] == "SEARCH"
 
 
+@requires_ddgs
 def test_search_writes_cache_and_recover():
     """搜索写入缓存，get_from_cache 能回查（勾选后 AI 写作链路）"""
     _clean_cache()
@@ -44,6 +54,7 @@ def test_search_writes_cache_and_recover():
     assert found[0]["title"] == news[0]["title"]
 
 
+@requires_ddgs
 def test_fetch_news_by_ids_hits_search_cache():
     """fetch_news_by_ids 优先命中搜索缓存（写作回查链路）"""
     _clean_cache()
