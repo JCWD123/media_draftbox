@@ -95,10 +95,11 @@ if (-not (Test-Path "$InstallDir\cli.py")) {
 # 安装 Python 依赖
 Write-Host "📦 安装 Python 依赖..." -ForegroundColor Yellow
 # 用 cmd /c 包装 pip，避免 pip 写 stderr 在严格模式下被误判终止
-cmd /c "pip install fastapi uvicorn pyyaml requests markdown beautifulsoup4 Pillow feedparser ddgs -q"
+# 显式声明 pydantic>=2.0：后端 schemas 用了 field_validator（v2 API），v1 会导致 ImportError 崩溃
+cmd /c "pip install fastapi uvicorn pydantic>=2.0 pyyaml requests markdown beautifulsoup4 Pillow feedparser ddgs -q"
 if ($LASTEXITCODE -ne 0) {
     Write-Host "  ⚠️  pip 失败，尝试 python -m pip ..." -ForegroundColor Yellow
-    cmd /c "python -m pip install fastapi uvicorn pyyaml requests markdown beautifulsoup4 Pillow feedparser ddgs -q"
+    cmd /c "python -m pip install fastapi uvicorn pydantic>=2.0 pyyaml requests markdown beautifulsoup4 Pillow feedparser ddgs -q"
 }
 Write-Host "  ✅ Python 依赖就绪" -ForegroundColor Green
 
