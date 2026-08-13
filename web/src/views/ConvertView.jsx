@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Button from '../components/common/Button'
 import ThemeSelector from '../components/convert/ThemeSelector'
 import { ListDraftsPanel } from '../components/drafts/DraftSelector'
 import { convertMarkdown } from '../service/api/convert'
 import { getDraft } from '../service/api/drafts'
+import { illustrateArticle } from '../service/api/illustrate'
 import { sanitizePreviewHtml } from '../utils/sanitizePreview'
 import { useApp } from '../utils/AppContext'
 
@@ -18,6 +19,10 @@ export default function ConvertView() {
   const [converting, setConverting] = useState(false)
   const [recentHtml, setRecentHtml] = useState(html || '') // 当前预览的 html
   const [currentSource, setCurrentSource] = useState('最近生成') // 来源标记
+  const [materialName, setMaterialName] = useState('') // 已上传的物料.md 文件名
+  const [materialMd, setMaterialMd] = useState('') // 物料.md 内容
+  const [illustrating, setIllustrating] = useState(false) // 配图中
+  const fileInputRef = useRef(null)
 
   // 用当前 markdown 按指定主题走 wewrite 转换
   const renderWithTheme = async (md, th) => {
@@ -82,6 +87,44 @@ export default function ConvertView() {
     if (html && !recentHtml) setRecentHtml(html)
   }, [html])
 
+  // 读取物料.md 文件（纯前端读文本，不调用后端）
+  const handleMaterialFile = (e) => {
+    const file = e.target.files && e.target.files[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      setMaterialMd(String(reader.result || ''))
+      setMaterialName(file.name)
+      showToast('success', `已加载物料: ${file.name}`)
+    }
+    reader.onerror = () => showToast('error', '读取物料文件失败')
+    reader.readAsText(file, 'utf-8')
+  }
+
+  // 按物料给当前 HTML 配图
+  const handleIllustrate = async () => {
+    if (!recentHtml || !recentHtml.trim()) { showToast('warn', '请先选择文章生成排版'); return }
+    if (!materialMd || !materialMd.trim()) { showToast('warn', '请先上传发布物料.md 文件'); return }
+    setIllustrating(true)
+    try {
+      const res = await illustrateArticle(recentHtml, materialMd)
+      if (res.success && res.html) {
+        setRecentHtml(res.html); setHtml(res.html)
+        const n = (res.inserted || []).filter(i => i.ok).length
+        const warn = (res.warnings || []).length
+        showToast('success', `✅ 已插入 ${n} 张图片${warn ? `，${warn} 条警告` : ''}`)
+        if (warn) res.warnings.slice(0, 3).forEach(w => showToast('info', w))
+      } else {
+        showToast('error', `配图失败: ${res.error || '未知错误'}`)
+      }
+    } catch (e) {
+      showToast('error', `配图失败: ${e.message}`)
+    } finally {
+      setIllustrating(false)
+    }
+  }
+
+
   return (
     <div className="convert-layout">
       {/* 左侧控制面板 */}
@@ -96,6 +139,30 @@ export default function ConvertView() {
         <div className="convert-source">
           <span className="muted">当前来源: {currentSource}</span>
         </div>
+
+        {/* 配图区块：上传发布物料.md → 按物料规则给当前文章插图 */}
+        <div className="illustrate-panel">
+          <h4>📷 按物料配图</h4>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".md,.markdown,.txt"
+            style={{ display: 'none' }}
+            onChange={handleMaterialFile}
+          />
+          <div className="illustrate-row">
+            <Button variant="default" size="sm" onClick={() => fileInputRef.current && fileInputRef.current.click()}>
+              📄 上传物料.md
+            </Button>
+            <Button variant="primary" size="sm" loading={illustrating} onClick={handleIllustrate}>
+              🎨 生成配图
+            </Button>
+          </div>
+          <div className="muted illustrate-meta">
+            {materialName ? `已加载: ${materialName}` : '上传「发布物料.md」后生成配图并插入'}
+          </div>
+        </div>
+
         <ListDraftsPanel onSelect={loadFromDraft} />
       </div>
 

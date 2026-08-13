@@ -14,7 +14,7 @@ if str(backend_dir) not in sys.path:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from api import news, convert, grammar, images, drafts, plugins, execute, write, skill
+from api import news, convert, grammar, images, drafts, plugins, execute, write, skill, illustrate
 from providers import init_registry
 from service.media_task import MEDIA_DIR
 
@@ -40,6 +40,7 @@ app.include_router(plugins.router, prefix="/api/system", tags=["系统"])
 app.include_router(execute.router, prefix="/api/execute", tags=["代码执行"])
 app.include_router(write.router, prefix="/api", tags=["AI写作"])
 app.include_router(skill.router, prefix="/api", tags=["Skill进化"])
+app.include_router(illustrate.router, prefix="/api/illustrate", tags=["文章配图"])
 
 # 生成的媒体文件静态服务（/media/images/xxx.png 等）
 MEDIA_DIR.mkdir(parents=True, exist_ok=True)
