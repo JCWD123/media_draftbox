@@ -287,6 +287,43 @@ def cmd_setup():
         save_config(cfg)
         print("  ✅ 已保存")
 
+    # 图片生成配置（AI 配图 / 文章插图，Seedream 或 OpenAI）
+    print("\n\x1b[36m  ── 图片生成模型 ──\x1b[0m")
+    img_cfg = cfg.get("image", {})
+    img_provider = img_cfg.get("provider", "ark")
+    prov_choice = safe_input(
+        f"  提供商 [1=火山方舟 Seedream(国内直连) / 2=OpenAI gpt-image-2(需代理)] [默认{'1' if img_provider != 'openai' else '2'}]: ",
+        "1" if img_provider != "openai" else "2",
+    )
+    img_new_provider = "openai" if prov_choice.strip() == "2" else "ark"
+    default_model = "gpt-image-2" if img_new_provider == "openai" else "doubao-seedream-4-0-250828"
+    img_key = safe_input(
+        f"  {'OpenAI' if img_new_provider == 'openai' else 'ARK'} API Key [{img_cfg.get('api_key','') or '未设置'}]: "
+    )
+    img_model = safe_input(f"  模型名 [{img_cfg.get('model','') or default_model}]: ") or img_cfg.get('model','') or default_model
+    if img_key or img_new_provider != img_provider or img_model != img_cfg.get('model',''):
+        cfg["image"] = {
+            "provider": img_new_provider,
+            "api_key": img_key or img_cfg.get("api_key", ""),
+            "model": img_model,
+        }
+        save_config(cfg)
+        print("  ✅ 图片生成已保存")
+
+    # 视频生成配置（Seedance，异步任务）
+    print("\n\x1b[36m  ── 视频生成模型 ──\x1b[0m")
+    vid_cfg = cfg.get("video", {})
+    default_vid_model = "doubao-seedance-1-0-pro-250528"
+    vid_key = safe_input(f"  ARK API Key [{vid_cfg.get('api_key','') or '未设置'}]: ")
+    vid_model = safe_input(f"  模型名 [{vid_cfg.get('model','') or default_vid_model}]: ") or vid_cfg.get('model','') or default_vid_model
+    if vid_key or vid_model != vid_cfg.get('model',''):
+        cfg["video"] = {
+            "api_key": vid_key or vid_cfg.get("api_key", ""),
+            "model": vid_model,
+        }
+        save_config(cfg)
+        print("  ✅ 视频生成已保存")
+
     # 服务端口
     print("\n\x1b[36m  ── 服务端口 ──\x1b[0m")
     port = safe_input(f"  后端端口 [{cfg.get('server',{}).get('port',8502)}]: ")
