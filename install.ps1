@@ -3,10 +3,13 @@
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-# 使用 Continue 而非 Stop：安装脚本大量调用外部命令（git/pip/npm/wewrite），
+# 使用 Continue 而非 Stop：安装脚本大量调用外部命令（git/pip/npm/uv/wewrite），
 # 这些命令写 stderr 的正常进度/探测输出在 Stop 模式下会被误判为终止错误。
 # 关键步骤的成败统一通过 $LASTEXITCODE 显式判断。
 $ErrorActionPreference = "Continue"
+
+# 关闭 Invoke-WebRequest 进度条（Windows PowerShell 5.1 会因逐字节刷新严重拖慢下载）
+$ProgressPreference = "SilentlyContinue"
 
 # 修正控制台编码，避免中文乱码
 try {
@@ -35,7 +38,6 @@ if (-not (Test-Path "$InstallDir\cli.py")) {
     $cloneError = $null
 
     # 优先使用 partial clone + sparse-checkout（git 2.25+，跳过 docs 大文件，速度快）
-    # 注意：用 cmd /c 包装 git，避免 PowerShell 把 git 写 stderr 的正常进度输出当作终止错误
     Push-Location $InstallDir
     try {
         cmd /c "git init -q"
@@ -92,69 +94,100 @@ if (-not (Test-Path "$InstallDir\cli.py")) {
     Write-Host "  ✅ 已存在安装目录，跳过下载" -ForegroundColor Green
 }
 
-# 安装 Python 依赖
+# ============================================================================
+# 隔离环境：创建独立的 Python venv（参考 hermes-agent 做法）
+# 不污染用户已有的 Anaconda/系统 Python，用 uv 置备项目专属的 Python 3.11，
+# 版本墙（ddgs 需 >=3.10、wewrite 需 >=3.11、pydantic 需 v2）在隔离环境里自然满足。
+# ============================================================================
+
+$VenvDir = "$InstallDir\venv"
+$VenvPython = "$VenvDir\Scripts\python.exe"
+# 国内 PyPI 镜像（优先清华，失败回退官方）
+$PyIndexUrl = "https://pypi.tuna.tsinghua.edu.cn/simple"
+
+# 定位 uv（系统已有则用，否则尝试通过 pip 临时装一个到用户目录）
+function Resolve-Uv {
+    $uv = Get-Command uv -ErrorAction SilentlyContinue
+    if ($uv) { return $uv.Source }
+
+    # 尝试用 pip 装 uv（装到用户 site，仅用于本次置备环境）
+    Write-Host "  未检测到 uv，尝试安装..." -ForegroundColor Yellow
+    pip install uv -q 2>$null | Out-Null
+    $uv = Get-Command uv -ErrorAction SilentlyContinue
+    if ($uv) { return $uv.Source }
+    return $null
+}
+
+$UvExe = Resolve-Uv
+
+# 判断是否需要（重新）创建 venv：不存在，或 python 版本不对
+$needVenv = $true
+if (Test-Path $VenvPython) {
+    $existingVer = & $VenvPython --version 2>&1
+    if ($existingVer -match "3\.(1[1-9])") {
+        $needVenv = $false
+    }
+}
+
+if ($needVenv) {
+    if (-not $UvExe) {
+        Write-Host "❌ 未找到 uv 且无法自动安装（网络受限）" -ForegroundColor Red
+        Write-Host "   请手动安装 uv： https://docs.astral.sh/uv/getting-started/installation/" -ForegroundColor Red
+        Write-Host "   或手工创建 venv： python -m venv $VenvDir" -ForegroundColor Red
+        exit 1
+    }
+
+    Write-Host "🔧 创建隔离环境（Python 3.11）..." -ForegroundColor Cyan
+    # 删除旧 venv（若存在且版本不符）
+    if (Test-Path $VenvDir) {
+        Remove-Item -Recurse -Force $VenvDir
+    }
+
+    # uv venv 会输出 "Using CPython ..." 到 stderr，PowerShell 5.1 在 Stop 下会崩溃，
+    # 这里已是 Continue 模式，配合 $LASTEXITCODE 判断成败
+    & $UvExe venv $VenvDir --python 3.11 2>&1 | Out-Null
+    if (-not (Test-Path $VenvPython)) {
+        Write-Host "❌ 创建隔离环境失败" -ForegroundColor Red
+        exit 1
+    }
+    Write-Host "  ✅ 隔离环境就绪" -ForegroundColor Green
+} else {
+    Write-Host "  ✅ 隔离环境已存在，跳过创建" -ForegroundColor Green
+}
+
+# 用 venv 的 python 替换后续所有 python/pip 调用
+$script:PyCmd = $VenvPython
+
+# 安装 Python 后端依赖（装进隔离环境，用国内镜像加速）
 Write-Host "📦 安装 Python 依赖..." -ForegroundColor Yellow
-# 用 cmd /c 包装 pip，避免 pip 写 stderr 在严格模式下被误判终止
 # 显式声明 pydantic>=2.0：后端 schemas 用了 field_validator（v2 API），v1 会导致 ImportError 崩溃
-cmd /c "pip install fastapi uvicorn pydantic>=2.0 pyyaml requests markdown beautifulsoup4 Pillow feedparser ddgs -q"
+& $UvExe pip install --python $VenvDir --index-url $PyIndexUrl fastapi uvicorn "pydantic>=2.0" pyyaml requests markdown beautifulsoup4 Pillow feedparser ddgs 2>&1 | Out-Null
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "  ⚠️  pip 失败，尝试 python -m pip ..." -ForegroundColor Yellow
-    cmd /c "python -m pip install fastapi uvicorn pydantic>=2.0 pyyaml requests markdown beautifulsoup4 Pillow feedparser ddgs -q"
+    # 清华镜像失败时，回退官方源
+    Write-Host "  ⚠️  镜像源失败，尝试官方源..." -ForegroundColor Yellow
+    & $UvExe pip install --python $VenvDir fastapi uvicorn "pydantic>=2.0" pyyaml requests markdown beautifulsoup4 Pillow feedparser ddgs 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "❌ Python 依赖安装失败" -ForegroundColor Red
+        exit 1
+    }
 }
 Write-Host "  ✅ Python 依赖就绪" -ForegroundColor Green
 
-# 安装 wewrite（排版转换依赖，需要 Python >=3.11；缺失时仅影响「排版转换」功能，不阻断安装）
+# 安装 wewrite（排版转换引擎，Python 3.11 venv 内可正常安装）
 Write-Host "📦 安装 wewrite（排版转换引擎）..." -ForegroundColor Yellow
-$wewriteOk = $false
-$wewriteCmd = Get-Command wewrite -ErrorAction SilentlyContinue
-if ($wewriteCmd) {
-    $wewriteOk = $true
-    Write-Host "  ✅ wewrite 已安装" -ForegroundColor Green
+& $UvExe pip install --python $VenvDir --index-url $PyIndexUrl wewrite 2>&1 | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "  ⚠️  wewrite 安装失败（排版转换功能将不可用），可稍后手动: draftbox 环境内 pip install wewrite" -ForegroundColor Yellow
 } else {
-    # 先检查 Python 版本，给出精准提示
-    $pyVerOut = & python --version 2>&1
-    $pyMatch = [regex]::Match("$pyVerOut", 'Python\s+(\d+)\.(\d+)')
-    if ($pyMatch.Success) {
-        $pyMajor = [int]$pyMatch.Groups[1].Value
-        $pyMinor = [int]$pyMatch.Groups[2].Value
-        $pyMajorMinor = $pyMajor * 100 + $pyMinor
-        $pyVerLabel = "$pyMajor.$pyMinor"
-    } else {
-        $pyMajorMinor = 0
-        $pyVerLabel = "未知"
-    }
-
-    if ($pyMajorMinor -lt 311) {
-        Write-Host "  ⚠️  当前 Python $pyVerLabel < 3.11，wewrite 需要 Python >=3.11" -ForegroundColor Yellow
-        Write-Host "     排版转换功能将不可用；AI 写作/新闻/草稿等核心功能不受影响" -ForegroundColor Yellow
-        Write-Host "     如需排版转换，可安装 Python 3.11+ 后运行: pip install wewrite" -ForegroundColor Yellow
-    } else {
-        Write-Host "  ⚠️  wewrite 未安装，尝试自动安装..." -ForegroundColor Yellow
-        cmd /c "pip install wewrite -q" 2>$null | Out-Null
-        if ($LASTEXITCODE -eq 0) {
-            $wewriteOk = $true
-            Write-Host "  ✅ wewrite 安装完成" -ForegroundColor Green
-        } else {
-            Write-Host "  ⚠️  wewrite 安装失败（排版转换功能不可用），可稍后手动: pip install wewrite" -ForegroundColor Yellow
-        }
-    }
+    Write-Host "  ✅ wewrite 就绪" -ForegroundColor Green
 }
 
-# ddgs（DuckDuckGo 实时搜索）需要 Python >=3.10；缺失时仅影响「自定义新闻搜索」，不阻断安装
-$ddgsCmd = Get-Command ddgs -ErrorAction SilentlyContinue
-$hasDdgsModule = $false
-if (-not $ddgsCmd) {
-    # 用当前 python 探测 import 是否可用
-    $ddgsProbe = & python -c "import ddgs" 2>$null
-    if ($LASTEXITCODE -eq 0) { $hasDdgsModule = $true }
-}
-if (($ddgsCmd) -or $hasDdgsModule) {
-    Write-Host "📦 ddgs（自定义新闻搜索）已就绪" -ForegroundColor Green
-} elseif ($pyMajorMinor -lt 310) {
-    Write-Host "  ⚠️  当前 Python $pyVerLabel < 3.10，ddgs 需要 Python >=3.10" -ForegroundColor Yellow
-    Write-Host "     自定义新闻搜索（DuckDuckGo）功能将不可用，其余功能不受影响" -ForegroundColor Yellow
+# 验证关键依赖确实可用（pydantic v2 + ddgs）
+$verifyOk = & $VenvPython -c "import pydantic, ddgs; from pydantic import field_validator; print('ok')" 2>&1
+if ($verifyOk -notmatch "ok") {
+    Write-Host "  ⚠️  依赖验证异常：$verifyOk" -ForegroundColor Yellow
 } else {
-    Write-Host "  ⚠️  ddgs 未安装，可手动: pip install ddgs" -ForegroundColor Yellow
+    Write-Host "  ✅ pydantic v2 + ddgs 验证通过" -ForegroundColor Green
 }
 
 # 安装前端依赖
@@ -162,10 +195,16 @@ Write-Host "📦 安装前端依赖..." -ForegroundColor Yellow
 $webDir = "$InstallDir\web"
 if (Test-Path "$webDir\package.json") {
     Push-Location $webDir
-    # 使用 cmd /c npm 避免 PowerShell 执行策略问题
-    cmd /c "npm install"
+    # 前端依赖默认走 npm，可用国内镜像加速
+    cmd /c "npm install --registry=https://registry.npmmirror.com"
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "  ⚠️  前端依赖安装失败（可稍后手动 npm install）" -ForegroundColor Yellow
+        Write-Host "  ⚠️  前端依赖安装失败，回退官方源..." -ForegroundColor Yellow
+        cmd /c "npm install"
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "  ⚠️  前端依赖安装失败（可稍后手动 npm install）" -ForegroundColor Yellow
+        } else {
+            Write-Host "  ✅ 前端依赖安装完成" -ForegroundColor Green
+        }
     } else {
         Write-Host "  ✅ 前端依赖安装完成" -ForegroundColor Green
     }
@@ -177,10 +216,11 @@ if (Test-Path "$webDir\package.json") {
 # 创建 draftbox.cmd（放到 ~/.local/bin/ 优先级更高）
 Write-Host "🔧 创建 draftbox 命令..." -ForegroundColor Yellow
 
+# draftbox.cmd 使用隔离环境的 python.exe（绕开用户系统 Python 的版本墙）
 $cmdContent = @"
 @echo off
 cd /d "%USERPROFILE%\.draftbox"
-python cli.py %*
+"%USERPROFILE%\.draftbox\venv\Scripts\python.exe" cli.py %*
 "@
 
 # 放到 ~/.local/bin/draftbox.cmd（优先级最高）
