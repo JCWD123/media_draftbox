@@ -117,6 +117,7 @@ export function apply(ctx, config) {
           value.video_pending ? '⏳ 视频仍在后台生成中，请用 draftbox_video_status 查询 draft_id 状态。' : '',
           value.warnings && value.warnings.length ? `⚠️ 警告：\n${value.warnings.join('\n')}` : '',
           `\n--- Markdown 正文 ---\n${(value.content || '').slice(0, 4000)}`,
+          `\n--- 完整 HTML（可直接粘贴进公众号，也可原样传给 draftbox_save_draft 的 html 参数）---\n${value.html || '(无)'}`,
         ].filter(Boolean)
         return [{ type: 'text', text: lines.join('\n') }]
       },
@@ -153,7 +154,7 @@ export function apply(ctx, config) {
       schema: { type: 'object', additionalProperties: true, properties: { html: { type: 'string' }, error: { type: 'string' } } },
       render: (_args, value) => {
         if (!value || value.error) return [{ type: 'text', text: value && value.error ? value.error : '排版失败' }]
-        return [{ type: 'text', text: `已排版（HTML 约 ${value.html.length} 字符）。html 字段含完整内联样式，可直接粘贴到 mp.weixin.qq.com 编辑器。` }]
+        return [{ type: 'text', text: `已排版（HTML 约 ${value.html.length} 字符）。\n--- 完整 HTML（可直接粘贴进公众号，也可原样传给 draftbox_save_draft 的 html 参数）---\n${value.html}` }]
       },
     },
     async execute(args) {
@@ -229,7 +230,7 @@ export function apply(ctx, config) {
       },
       render: (_args, value) => {
         if (!value) return [{ type: 'text', text: '草稿不存在' }]
-        return [{ type: 'text', text: `《${value.title}》  (更新于 ${value.updated_at || '未知'})\n\n--- Markdown ---\n${(value.markdown || '(无 markdown)').slice(0, 3000)}` }]
+        return [{ type: 'text', text: `《${value.title}》  (更新于 ${value.updated_at || '未知'})\n\n--- Markdown ---\n${(value.markdown || '(无 markdown)').slice(0, 3000)}\n\n--- 完整 HTML ---\n${value.html || '(无 html)'}` }]
       },
     },
     async execute(args) {

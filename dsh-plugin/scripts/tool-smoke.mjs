@@ -93,6 +93,12 @@ try {
 try {
   const v = await byName['draftbox_typeset'].execute({ markdown: '# 标题\n\n正文。', theme: 'premium' })
   check('draftbox_typeset -> html_len>0', !v.error && (v.html || '').length > 0, `html_len=${(v.html || '').length}`)
+  // 契约：render 必须把完整 html 暴露给模型（full-linkage 存 html 的前提）
+  if (v.html) {
+    const blocks = byName['draftbox_typeset'].output.render({ markdown: '# 标题', theme: 'premium' }, v)
+    const text = blocks.map((b) => b.text || '').join('')
+    check('draftbox_typeset -> render 包含完整 html', text.includes(v.html), `html_len=${v.html.length}`)
+  }
 } catch (e) { check('draftbox_typeset', false, e.message) }
 
 // draftbox_search_images（Pexels）

@@ -111,10 +111,10 @@ if [ "$WITH_AGENT" -eq 1 ]; then
     OUT="$(cd "$ROOT" && timeout 240 dsh --profile headless \
 "执行以下全链路任务，并把每一步结果如实报告：
 1. 调用 draftbox_write_article 生成一篇文章。核心思路固定为：'火山引擎 Seedream 让公众号配图一键生成'，标题固定为 '$E2E_TITLE'，with_images 设为 true，max_images 设为 1，with_video 设为 false。
-2. 生成成功后，调用 draftbox_save_draft 把它存进草稿箱（title 用 '$E2E_TITLE'，content 用返回的 markdown，html 用返回的 html）。
+2. 生成成功后，调用 draftbox_save_draft 把它存进草稿箱：title 用 '$E2E_TITLE'，content 用返回的 markdown，html 用返回的 html。注意：html 参数必须原样传入（write_article 的返回里已包含完整 HTML，不得省略），这样才能存进排版结果。
 3. 保存后，额外调用一次 draftbox_list_drafts 确认 '$E2E_TITLE' 在列表中。
 最后，单独输出一行，格式必须是：SAVED_FILE=<保存草稿的文件名>
-（这一行我会用来独立核验，请务必准确填写 save_draft 返回的 filename。）")"
+（这一行我会用来独立核验，请务必准确填写 save_draft 返回的 filename，并确保第 2 步确实传入了 html。）")"
     RC=$?
     echo "$OUT" | tail -20
     echo ""
@@ -137,11 +137,13 @@ if [ "$WITH_AGENT" -eq 1 ]; then
         else
           V_TITLE="$(printf '%s' "$VERIFY_JSON" | python -c "import sys,json;d=json.load(sys.stdin);print(d.get('title') or '')" 2>/dev/null)"
           V_MD_LEN="$(printf '%s' "$VERIFY_JSON" | python -c "import sys,json;d=json.load(sys.stdin);print(len(d.get('markdown') or ''))" 2>/dev/null)"
+          V_HTML_LEN="$(printf '%s' "$VERIFY_JSON" | python -c "import sys,json;d=json.load(sys.stdin);print(len(d.get('html') or ''))" 2>/dev/null)"
           OK_TITLE=false; [ "x$V_TITLE" = "x$E2E_TITLE" ] && OK_TITLE=true
           OK_MD=false;   [ "${V_MD_LEN:-0}" -gt 0 ] && OK_MD=true
-          check_nums=0
-          $OK_TITLE && { ok "独立核验：title 一致"; check_nums=$((check_nums+1)); } || { bad "独立核验：title 不一致 ($V_TITLE)"; FAIL=$((FAIL+1)); }
-          $OK_MD && { ok "独立核验：markdown 已落盘 ($V_MD_LEN 字符)"; check_nums=$((check_nums+1)); } || { bad "独立核验：markdown 为空"; FAIL=$((FAIL+1)); }
+          OK_HTML=false; [ "${V_HTML_LEN:-0}" -gt 0 ] && OK_HTML=true
+          $OK_TITLE && { ok "独立核验：title 一致"; PASS=$((PASS+1)); } || { bad "独立核验：title 不一致 ($V_TITLE)"; FAIL=$((FAIL+1)); }
+          $OK_MD && { ok "独立核验：markdown 已落盘 ($V_MD_LEN 字符)"; PASS=$((PASS+1)); } || { bad "独立核验：markdown 为空"; FAIL=$((FAIL+1)); }
+          $OK_HTML && { ok "独立核验：html 已落盘 ($V_HTML_LEN 字符)"; PASS=$((PASS+1)); } || { bad "独立核验：html 为空（agent 未传 html 给 save_draft）"; FAIL=$((FAIL+1)); }
         fi
         # ---- 清理全链路测试草稿 ----
         CLEAN_RC="$(curl -s --noproxy '*' -m 10 -o /dev/null -w '%{http_code}' -X DELETE "$BACKEND_URL/api/drafts/$(python -c "import urllib.parse,sys;print(urllib.parse.quote(sys.argv[1]))" "$SAVED_FILE")" 2>/dev/null)"
