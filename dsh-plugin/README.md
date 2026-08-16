@@ -71,8 +71,10 @@ After installing dsh + pnpm (see above), run the end-to-end self-test with one c
 cd dsh-plugin
 bash test-e2e.sh               # tool-layer checks: start/reuse backend + real
                                #   list/get/save/typeset/search assertions (no LLM cost)
-bash test-e2e.sh --with-agent  # also run a real dsh agent calling draftbox_list_drafts
-                               #   (requires DEEPSEEK_API_KEY)
+bash test-e2e.sh --with-agent  # reproducible full linkage: a real dsh agent runs
+                               #   write_article (incl. 1 Seedream image) -> save_draft -> list_drafts
+                               #   + the script independently verifies persistence via curl and cleans up
+                               #   (requires DEEPSEEK_API_KEY + a Volcano Ark key configured in the backend)
 bash test-e2e.sh --keep-backend # do not stop the backend it started after the run
 ```
 

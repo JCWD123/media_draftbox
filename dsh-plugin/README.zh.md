@@ -60,7 +60,8 @@ dsh --profile demo --dump-config   # 应看到 "# == dsh-draftbox" 这一层
 ```sh
 cd dsh-plugin
 bash test-e2e.sh              # 工具层自测：启动/复用后端 + list/get/save/typeset/search 真实断言（无 LLM 成本）
-bash test-e2e.sh --with-agent # 额外用真实 dsh agent 调一次 draftbox_list_drafts（需 DEEPSEEK_API_KEY）
+bash test-e2e.sh --with-agent # 可复现全链路：真实 dsh agent 走 write_article(含 1 张 Seedream 图) -> save_draft -> list_drafts
+                              #   + 脚本独立 curl 复核落盘并自动清理（需 DEEPSEEK_API_KEY + 后端已配火山引擎 key）
 bash test-e2e.sh --keep-backend # 测试结束后不关闭它拉起的后端
 ```
 
