@@ -78,7 +78,10 @@ bash test-e2e.sh --keep-backend # do not stop the backend it started after the r
 
 - Exit code `0` = all pass; `1` = some failures; `2` = missing prerequisites (node/pnpm/dsh).
 - Test drafts are auto-cleaned; a backend started by the script is stopped by default (`--keep-backend` keeps it).
-- The tool-layer self-test never calls an LLM, so it's safe to re-run repeatedly for regressions.
+- The tool-layer self-test never calls an LLM: the 5 regular tools get real assertions
+  (list/get/save/typeset/search); the 3 multimodal tools (write_article/illustrate/video_status)
+  get contract-level assertions (hit backend validation/error branches without actually
+  triggering LLM / Seedream / Seedance).
 
 ## Tools exposed
 

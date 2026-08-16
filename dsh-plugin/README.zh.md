@@ -66,7 +66,8 @@ bash test-e2e.sh --keep-backend # 测试结束后不关闭它拉起的后端
 
 - 退出码 `0`=全通过；`1`=有失败；`2`=前置缺失（node/pnpm/dsh）。
 - 测试产生的草稿会自动清理；若脚本自己拉起了后端，默认会关闭它（`--keep-backend` 保留）。
-- 纯工具层自测不调用 LLM，可无脑反复跑做回归。
+- 纯工具层自测不调用 LLM：5 个常规工具做真实断言（list/get/save/typeset/search），3 个多模态工具
+  （write_article/illustrate/video_status）做契约级断言（命中后端校验/错误分支，不真触发 LLM/Seedream/Seedance）。
 
 ## 提供的工具
 

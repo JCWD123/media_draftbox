@@ -107,6 +107,43 @@ try {
   if (!okShape) { check('draftbox_search_images', false, '返回非数组') }
 } catch (e) { check('draftbox_search_images', false, e.message) }
 
+// ---- 多模态工具契约级断言（不真触发 LLM/Seedream/Seedance）----
+// 用「会命中后端校验/错误分支」的输入，证明「插件 → 后端」的 HTTP 链路与
+// 错误契约正确；返回结构断言对齐后端真实契约。
+
+// write_article：topic 长度 < 2（含空串/纯空白）→ Pydantic 422 → 插件抛 readable 错误
+// 注：Pydantic min_length>=1 + strip 后 <2 一律在 API 层 422，业务分支 {success:false} 不可达。
+try {
+  const v = await byName['draftbox_write_article'].execute({ topic: 'x' })
+  check('draftbox_write_article 契约(短topic→422)', false, '短 topic 未触发后端 422（返回了 ' + JSON.stringify(v).slice(0, 80) + '）')
+} catch (e) {
+  check('draftbox_write_article 契约(短topic→422)', /返回 422/.test(e.message), e.message.slice(0, 90))
+}
+try {
+  const v = await byName['draftbox_write_article'].execute({ topic: '   ' })
+  check('draftbox_write_article 契约(空白topic→422)', false, '空白 topic 未触发后端 422')
+} catch (e) {
+  check('draftbox_write_article 契约(空白topic→422)', /返回 422/.test(e.message), e.message.slice(0, 90))
+}
+
+// illustrate：html 为空 → 后端 {success:false, error:"文章 HTML 为空"}（不触发生图）
+try {
+  const v = await byName['draftbox_illustrate'].execute({ html: '   ', material_md: '封面图：\n"An empty prompt."' })
+  check('draftbox_illustrate 契约(空html)', v && v.success === false && /空/.test(v.error || ''), `error=${(v && v.error || '').slice(0, 40)}`)
+} catch (e) { check('draftbox_illustrate 契约(空html)', false, e.message.slice(0, 90)) }
+
+// illustrate：物料无解析出的 prompt → 后端业务错误分支（不触发生图）
+try {
+  const v = await byName['draftbox_illustrate'].execute({ html: '<h1>标题</h1><p>正文</p>', material_md: '发布物料.md\n没有可解析的插图规则文本' })
+  check('draftbox_illustrate 契约(无规则)', v && v.success === false && !!v.error, `error=${(v && v.error || '').slice(0, 40)}`)
+} catch (e) { check('draftbox_illustrate 契约(无规则)', false, e.message.slice(0, 90)) }
+
+// video_status：未知 draft_id → 后端 {status:"not_found"}，插件应正确读出 status
+try {
+  const v = await byName['draftbox_video_status'].execute({ draft_id: 'no_such_draft_xyz' })
+  check('draftbox_video_status 契约(未知id)', v && v.status === 'not_found', `status=${v && v.status}`)
+} catch (e) { check('draftbox_video_status 契约(未知id)', false, e.message.slice(0, 90)) }
+
 // ---- 清理刚创建的测试草稿 ----
 try {
   const r = await fetch(`${BASE_URL}/api/drafts/${encodeURIComponent(uniq + '.json')}`, { method: 'DELETE' })
