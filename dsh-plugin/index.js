@@ -96,6 +96,7 @@ export function apply(ctx, config) {
     output: {
       schema: {
         type: 'object',
+        additionalProperties: true,
         properties: {
           success: { type: 'boolean' },
           title: { type: 'string' },
@@ -149,7 +150,7 @@ export function apply(ctx, config) {
       theme: { type: 'string', description: '排版主题（默认 professional-clean）。可用：premium, professional, minimal, github, newspaper, bold-navy, professional-clean, bauhaus, bold-green, bytedance, elegant-rose, focus-red, impeccable, ink, lobster-notes, midnight, minimal-gold, sspai, tech-modern, warm-editorial' },
     },
     output: {
-      schema: { type: 'object', properties: { html: { type: 'string' }, error: { type: 'string' } } },
+      schema: { type: 'object', additionalProperties: true, properties: { html: { type: 'string' }, error: { type: 'string' } } },
       render: (_args, value) => {
         if (!value || value.error) return [{ type: 'text', text: value && value.error ? value.error : '排版失败' }]
         return [{ type: 'text', text: `已排版（HTML 约 ${value.html.length} 字符）。html 字段含完整内联样式，可直接粘贴到 mp.weixin.qq.com 编辑器。` }]
@@ -174,7 +175,7 @@ export function apply(ctx, config) {
       html: { type: 'string', description: '排版后的 HTML（可选）' },
     },
     output: {
-      schema: { type: 'object', properties: { ok: { type: 'boolean' }, filename: { type: 'string' }, title: { type: 'string' } } },
+      schema: { type: 'object', additionalProperties: true, properties: { ok: { type: 'boolean' }, filename: { type: 'string' }, title: { type: 'string' } } },
       render: (_args, value) => {
         if (!value || value.ok === false) return [{ type: 'text', text: '保存草稿失败' }]
         return [{ type: 'text', text: `已保存草稿《${_args.title}》 -> ${value.filename}` }]
@@ -195,7 +196,7 @@ export function apply(ctx, config) {
     description: '列出 media_draftbox 草稿箱中的所有草稿（标题 + 更新时间）。',
     parameters: {},
     output: {
-      schema: { type: 'object', properties: { drafts: { type: 'array' } } },
+      schema: { type: 'object', additionalProperties: true, properties: { drafts: { type: 'array' } } },
       render: (_args, value) => {
         const drafts = (value && value.drafts) || []
         return [
@@ -218,6 +219,7 @@ export function apply(ctx, config) {
     output: {
       schema: {
         type: 'object',
+        additionalProperties: true,
         properties: {
           title: { type: 'string' },
           markdown: { type: 'string' },
@@ -249,6 +251,7 @@ export function apply(ctx, config) {
     output: {
       schema: {
         type: 'object',
+        additionalProperties: true,
         properties: {
           success: { type: 'boolean' },
           html: { type: 'string' },
@@ -284,10 +287,11 @@ export function apply(ctx, config) {
     output: {
       schema: {
         type: 'object',
+        additionalProperties: true,
         properties: {
           images: {
             type: 'array',
-            items: { type: 'object', properties: { url: { type: 'string' } } },
+            items: { type: 'object', additionalProperties: true, properties: { url: { type: 'string' } } },
           },
         },
       },
@@ -313,6 +317,7 @@ export function apply(ctx, config) {
     output: {
       schema: {
         type: 'object',
+        additionalProperties: true,
         properties: {
           success: { type: 'boolean' },
           status: { type: 'string' },
