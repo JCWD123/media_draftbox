@@ -22,13 +22,18 @@ uvicorn main:app --host 127.0.0.1 --port 8502 --reload
 **方式 A：本地 checkout（推荐开发）**
 
 ```sh
-# 在 dsh CLI 所在的目录执行
+# 1. 安装插件自身的依赖（pnpm 会把 @deepseek-ai/dsh-tools / @deepseek-ai/cordis
+#    装进 dsh-plugin/node_modules，`dsh plugin add` 以 link: 方式安装时需要它们）
+cd dsh-plugin && pnpm install && cd ..
+
+# 2. 装进 dsh 的 headless / 自定义 profile
 dsh plugin --profile demo add ./dsh-plugin
 ```
 
 **方式 B：从 GitHub 安装**
 
 ```sh
+# 需要 Node ≥ 22.19（dsh 依赖较新运行时），且 dsh 已安装（npx @deepseek-ai/dsh 或 npm i -g @deepseek-ai/dsh）
 dsh plugin --profile demo add github:JCWD123/media_draftbox
 ```
 

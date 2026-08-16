@@ -30,12 +30,19 @@ Make sure model / image / video providers are configured via `draftbox model`
 **Option A — local checkout (development):**
 
 ```sh
+# 1. Install the plugin's own deps (pnpm installs @deepseek-ai/dsh-tools /
+#    @deepseek-ai/cordis into dsh-plugin/node_modules; required because
+#    `dsh plugin add` installs via a pnpm `link:` that must resolve them)
+cd dsh-plugin && pnpm install && cd ..
+
+# 2. Install into a dsh headless / custom profile
 dsh plugin --profile demo add ./dsh-plugin
 ```
 
 **Option B — from GitHub:**
 
 ```sh
+# Requires Node >= 22.19 and `dsh` installed (npx @deepseek-ai/dsh or npm i -g @deepseek-ai/dsh)
 dsh plugin --profile demo add github:JCWD123/media_draftbox
 ```
 
