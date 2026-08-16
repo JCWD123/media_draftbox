@@ -1,0 +1,33 @@
+{
+  "name": "dsh-draftbox",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "DeepSeek Harness 插件：把 media_draftbox（公众号文章草稿箱，文字 + Seedream 配图 + Seedance 视频）的核心能力桥接为 agent 可调用的工具。",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "README.md",
+    "README.zh.md"
+  ],
+  "dependencies": {
+    "@deepseek-ai/cordis": "^0.1.0",
+    "@deepseek-ai/dsh-tools": "^0.1.0"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "media_draftbox",
+    "draftbox",
+    "wechat",
+    "公众号",
+    "ai-writing"
+  ],
+  "license": "MIT",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

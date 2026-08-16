@@ -1,0 +1,10 @@
+# DeepSeek Harness 组合包补丁层（dsh-draftbox）
+# 向 agent 组合中插入 media_draftbox 工具插件。
+#
+# baseUrl 指 media_draftbox 后端地址。默认本地 FastAPI(8502)；
+# 若你的后端跑在 Docker / VPS，请覆盖此键（例如 http://127.0.0.1:8502）。
+- insert:
+    - id: dsh-draftbox
+      name: dsh-draftbox
+      config:
+        baseUrl: http://127.0.0.1:8502
