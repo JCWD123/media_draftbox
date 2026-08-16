@@ -63,6 +63,23 @@ Then just ask the agent, e.g.:
 > Write an article about "DeepSeek Harness explained", pick a few hot news items as
 > material, add 4 illustrations, typeset with the `midnight` theme, and save it to the draft box.
 
+## One-shot regression test
+
+After installing dsh + pnpm (see above), run the end-to-end self-test with one command:
+
+```sh
+cd dsh-plugin
+bash test-e2e.sh               # tool-layer checks: start/reuse backend + real
+                               #   list/get/save/typeset/search assertions (no LLM cost)
+bash test-e2e.sh --with-agent  # also run a real dsh agent calling draftbox_list_drafts
+                               #   (requires DEEPSEEK_API_KEY)
+bash test-e2e.sh --keep-backend # do not stop the backend it started after the run
+```
+
+- Exit code `0` = all pass; `1` = some failures; `2` = missing prerequisites (node/pnpm/dsh).
+- Test drafts are auto-cleaned; a backend started by the script is stopped by default (`--keep-backend` keeps it).
+- The tool-layer self-test never calls an LLM, so it's safe to re-run repeatedly for regressions.
+
 ## Tools exposed
 
 | Tool | What it does | Backend endpoint |

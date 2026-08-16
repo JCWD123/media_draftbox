@@ -53,6 +53,21 @@ dsh --profile demo --dump-config   # 应看到 "# == dsh-draftbox" 这一层
 
 > 帮我把「DeepSeek Harness 详解」写成一篇文章：先勾选几篇热点素材，正文配 4 张图，用 midnight 主题排版，最后存进草稿箱。
 
+## 一键回归测试
+
+装好 dsh + pnpm + npm（安装见上）后，一条命令跑通端到端自测：
+
+```sh
+cd dsh-plugin
+bash test-e2e.sh              # 工具层自测：启动/复用后端 + list/get/save/typeset/search 真实断言（无 LLM 成本）
+bash test-e2e.sh --with-agent # 额外用真实 dsh agent 调一次 draftbox_list_drafts（需 DEEPSEEK_API_KEY）
+bash test-e2e.sh --keep-backend # 测试结束后不关闭它拉起的后端
+```
+
+- 退出码 `0`=全通过；`1`=有失败；`2`=前置缺失（node/pnpm/dsh）。
+- 测试产生的草稿会自动清理；若脚本自己拉起了后端，默认会关闭它（`--keep-backend` 保留）。
+- 纯工具层自测不调用 LLM，可无脑反复跑做回归。
+
 ## 提供的工具
 
 | 工具 | 说明 | 对应后端 API |
